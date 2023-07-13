@@ -61,7 +61,12 @@ func readExpectedJSON(directory string, requests []*APIRequest) error {
 	return nil
 }
 
-func readTestFiles(directory string) (map[string][]*APIRequest, error) {
+// LoadTests reads all test files in the provided directory and
+// returns them sorted by file.
+//
+// The result is a map indexed by the file name, its value being an
+// array of *APIRequests corresponding to the tests in the file.
+func LoadTests(directory string) (map[string][]*APIRequest, error) {
 	files, err := os.ReadDir(directory)
 	if err != nil {
 		return nil, err
@@ -87,7 +92,13 @@ func readTestFiles(directory string) (map[string][]*APIRequest, error) {
 	return allTests, nil
 }
 
-func connect(ctx context.Context, cfg *Config) (map[string]*Client, error) {
+// LoadClients reads the configuration file, creates a map of *Client,
+// connects them to their respective servers, and returns it.
+//
+// If something goes wrong during the JSON parsing or HTTP connection,
+// an error will be provided and the map will be nil. The clients can
+// then be used to run tests.
+func LoadClients(ctx context.Context, cfg *Config) (map[string]*Client, error) {
 	serverConfigs, err := readServersConfigs(cfg.Servers)
 	if err != nil {
 		return nil, err
@@ -122,12 +133,16 @@ func runOne(ctx context.Context, tin *testIn, out chan<- *testOut) error {
 	return nil
 }
 
+// Run starts the tests according to the provided config.
+//
+// The Config only requires the Servers and Tests values,
+// all other fields have reasonable defaults.
 func Run(ctx context.Context, cfg *Config) error {
-	clients, err := connect(ctx, cfg)
+	clients, err := LoadClients(ctx, cfg)
 	if err != nil {
 		return fmt.Errorf("cannot connect to servers: %w", err)
 	}
-	allTests, err := readTestFiles(cfg.Tests)
+	allTests, err := LoadTests(cfg.Tests)
 	if err != nil {
 		return fmt.Errorf("cannot read tests: %w", err)
 	}

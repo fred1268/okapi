@@ -1,18 +1,44 @@
 package testing
 
+// APIRequest contains all information required to run a test.
 type APIRequest struct {
-	Name      string
-	Server    string
-	Method    string
-	Endpoint  string
-	Headers   map[string]string
+	// Name represents the name of the test.
+	// It should be globally unique.
+	Name string
+	// Server represents the name of the server
+	// as written in the servers configuration file.
+	Server string
+	// Method represents the HTTP Method.
+	// See http.MethodGet, etc.
+	Method string
+	// Endpoint represents your ReST API endpoint.
+	// It should be relative to the server's Host.
+	Endpoint string
+	// Headers represents additional headers to add
+	// to the request.
+	Headers map[string]string
+	// URLParams represents additional query parameters
+	// that will be send with the request.
 	URLParams map[string]string
-	Payload   string
-	Expected  *APIResponse
+	// Payload represents the payload provided with some
+	// methods (POST, PUT, etc.) to the request.
+	Payload string
+	// Expected represents the expected APIResponse if
+	// everything goes according to the plan. The Logs
+	// field is ignored in this context.
+	Expected *APIResponse
 }
 
+// APIResponse contains information about the response from
+// the server.
 type APIResponse struct {
+	// StatusCode represents the HTTP Status Code returned
+	// by the server.
 	StatusCode int
-	Response   string
-	Logs       []string
+	// Response represents the payload (response) returned
+	// by the server.
+	Response string
+	// Logs represents okapi's logs which are grouped later
+	// on to be nicely displayed even in parallel mode.
+	Logs []string
 }

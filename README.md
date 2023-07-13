@@ -16,7 +16,7 @@ Pretty easy to install:
 go install github.com/fred1268/okapi@latest
 ```
 
-> Also, note that okapi uses [**clap :clap:, the Command Line Argument Parser**](https://github.com/fred1268/go-clap). clap is a non intrusive, lightweight command line parsing library you may want to try out in your own projects. Feel free to give it a try!
+> Please note that okapi does have a single dependency: [**clap :clap:, the Command Line Argument Parser**](https://github.com/fred1268/go-clap), which makes it very easy to parse okapi command line. clap is a lightweight, non intrusive command line parsing library you may want to try out in your own projects. Feel free to give it a try!
 
 ## Configuring okapi :giraffe:
 
@@ -32,7 +32,7 @@ The configuration file looks like the following:
 
 ```json
 {
-  "server1": {
+  "exampleserver1": {
     "host": "http://localhost:8080",
     "auth": {
       "login": {
@@ -45,12 +45,10 @@ The configuration file looks like the following:
       }
     },
     "session": {
-      "cookie": {
-        "name": "jsessionid"
-      }
+      "cookie": "jsessionid"
     }
   },
-  "server2": {
+  "exampleserver2": {
     "host": "http://localhost:9090",
     "auth": {
       "login": {
@@ -66,7 +64,7 @@ The configuration file looks like the following:
       "jwt": "header"
     }
   },
-  "server3": {
+  "exampleserver3": {
     "host": "http://localhost:8088",
     "auth": {
       "apikey": {
@@ -87,11 +85,11 @@ A Server description contains various fields:
 - `auth.login`: the information required to login the user, using the same format as a test (see below)
 - `session.cookie`: name of the cookie maintaining the session
 
-Here `server1` uses the `/login` endpoint on the same HTTP server than the one used for the tests. Both `email` and `password` are submitted in the `POST`, and `200 OK` is expected upon successful login. The session is maintained by a session cookie called `jsessionid`.
+Here `exampleserver1` uses the `/login` endpoint on the same HTTP server than the one used for the tests. Both `email` and `password` are submitted in the `POST`, and `200 OK` is expected upon successful login. The session is maintained by a session cookie called `jsessionid`.
 
-The second server, `server2` also uses the `/login` endpoint, but on a different server, hence the fully qualified URL given as the endpoint. The sesssion is maintained using a JWT (JSON Web Token) which is obtained though a header (namely `Authorization`). Should your JWT be returned as a payload, you can specify `"payload"` instead of `"header"`. JWT is always sent back using the `Authorization` header in the form of `Authorization: Bearer my_jwt`.
+The second server, `exampleserver2` also uses the `/login` endpoint, but on a different server, hence the fully qualified URL given as the endpoint. The sesssion is maintained using a JWT (JSON Web Token) which is obtained though a header (namely `Authorization`). Should your JWT be returned as a payload, you can specify `"payload"` instead of `"header"`. JWT is always sent back using the `Authorization` header in the form of `Authorization: Bearer my_jwt`.
 
-The third server, `server3` uses API Keys for authentication. The apikey field contains the key itself, whereas the header field contains the field used to send the API Key back (usually `Authorization`). Please note that session is not maintained in this example, since the API Key is sent with each request.
+The third server, `exampleserver3` uses API Keys for authentication. The apikey field contains the key itself, whereas the header field contains the field used to send the API Key back (usually `Authorization`). Please note that session is not maintained in this example, since the API Key is sent with each request.
 
 The last server, `hackernews`, is a server which doesn't require any authentication.
 
@@ -147,7 +145,7 @@ A test file contains an array of tests, each of them containing:
   - `statuscode`: the expected status code returned by the endpoint (200, 401, 403, etc.)
   - `result`: the expected payload returned by the endpoint. This field is optional.
 
-> Please note that result can be either a string (including json, like shown on 121004), or a `@file` (like in 121005) if you prefer to separate the test from its expected result. This can be handy if the result are complex JSON structs that you can easily copy and paste from somewhere else, or simply want to avoid escaping double quotes.
+> Please note that result can be either a string (including json, like shown in 121004), or a `@file` (like shown in 121005) if you prefer to separate the test from its expected result. This can be handy if the result are complex JSON structs that you can easily copy and paste from somewhere else, or simply prefer to avoid escaping double quotes.
 
 ### Result file
 
@@ -182,7 +180,37 @@ where options are one or more of the following:
 - `--content-type` (default application/json): to set the default content type for requests
 - `--accept` (default application/json): to set the default accept header for responses
 
-## Integration okapi :giraffe: with your own software
+## Output example
+
+If you run okapi in verbose mode with the HackerNews API tests, you should get the following outout:
+
+```shell
+--- PASS:       hackernews.users.test.json
+    --- PASS:   jk (0.36s)
+    --- PASS:   jl (0.17s)
+    --- PASS:   jc (0.14s)
+    --- PASS:   jo (0.15s)
+    --- PASS:   401 (0.15s)
+PASS
+ok      hackernews.users.test.json                      0.968s
+--- PASS:       hackernews.items.test.json
+    --- PASS:   121003 (0.14s)
+    --- PASS:   121004 (0.15s)
+    --- PASS:   121005 (0.16s)
+    --- PASS:   121006 (0.15s)
+    --- PASS:   121007 (0.14s)
+    --- PASS:   121008 (0.15s)
+    --- PASS:   121009 (0.16s)
+    --- PASS:   121010 (0.15s)
+    --- PASS:   121011 (0.14s)
+    --- PASS:   121012 (0.15s)
+    --- PASS:   121013 (0.15s)
+    --- PASS:   121014 (0.15s)
+PASS
+ok      hackernews.items.test.json                      2.767s
+```
+
+## Integrating okapi :giraffe: with your own software
 
 okapi exposes a pretty simple and straightforward API that you can use within your own Go programs.
 

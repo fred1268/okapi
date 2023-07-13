@@ -15,6 +15,9 @@ import (
 	"github.com/fred1268/okapi/testing/internal/json"
 )
 
+var ErrInvalidJWTSession error = errors.New("invalid JWT session")
+
+// Client represent an API Client for the specified server.
 type Client struct {
 	config *ServerConfig
 	client *http.Client
@@ -22,6 +25,12 @@ type Client struct {
 	jwt    string
 }
 
+// NewClient returns a new client according to the
+// provided ServerConfig.
+//
+// Client is safe to be used concurrently since
+// http.Client is. However, Connect() should only
+// be called once.
 func NewClient(config *ServerConfig) *Client {
 	client := &Client{
 		config: config,
@@ -111,10 +120,10 @@ func (c *Client) call(ctx context.Context, apiRequest *APIRequest) (response *AP
 	defer func() {
 		err = resp.Body.Close()
 	}()
-	if c.cookie == nil && c.config.Session != nil && c.config.Session.Cookie.Name != "" {
+	if c.cookie == nil && c.config.Session != nil && c.config.Session.Cookie != "" {
 		cookies := resp.Cookies()
 		for _, cookie := range cookies {
-			if cookie.Name == c.config.Session.Cookie.Name {
+			if cookie.Name == c.config.Session.Cookie {
 				c.cookie = cookie
 				break
 			}
@@ -140,6 +149,12 @@ func (c *Client) call(ctx context.Context, apiRequest *APIRequest) (response *AP
 	return
 }
 
+// Connect connects the client to the specified server.
+//
+// This method should not be called in normal circumpstances:
+// prefer LoadClients() instead which will load and connect all
+// the clients sequencially. Use Connect() if you want to create
+// a client independently from the server configuration file.
 func (c *Client) Connect(ctx context.Context) (*APIResponse, error) {
 	result, err := c.call(ctx, c.config.Auth.Login)
 	if err != nil {
@@ -151,6 +166,13 @@ func (c *Client) Connect(ctx context.Context) (*APIResponse, error) {
 	return result, nil
 }
 
+// Test runs the provided test.
+//
+// If verbose is set to true, the APIResponse will contain
+// a more detailed information upon exit. Test can return
+// ErrStatusCodeMismatched or ErrResultMismatched if the
+// function was run successfully, but the test did not pass.
+// It will retuen another error upon unexpected condition.
 func (c *Client) Test(ctx context.Context, apiRequest *APIRequest, verbose bool) (response *APIResponse, err error) {
 	start := time.Now()
 	defer func() {

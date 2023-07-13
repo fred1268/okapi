@@ -2,6 +2,7 @@ package testing
 
 import "github.com/fred1268/go-clap/clap"
 
+// Config holds okapi's configuration.
 type Config struct {
 	Servers     string `clap:"--servers-file,-s,mandatory"`
 	Tests       string `clap:"trailing"`
@@ -13,6 +14,10 @@ type Config struct {
 	Parallel    bool   `clap:"--parallel,-p"`
 }
 
+// LoadConfig returns okapi's configuration from the
+// command line arguments using clap, the command line
+// argument parsing library.
+// see: https://github.com/fred1268/go-clap
 func LoadConfig(args []string) (*Config, error) {
 	var cfg Config = Config{
 		Timeout:     30,
