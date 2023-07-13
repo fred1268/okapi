@@ -1,0 +1,49 @@
+{
+    "tests": [
+        {
+            "name": "jk",
+            "server": "hackernews",
+            "method": "GET",
+            "endpoint": "/v0/user/jk.json",
+            "expected": {
+                "statuscode": 200
+            }
+        },
+        {
+            "name": "jl",
+            "server": "hackernews",
+            "method": "GET",
+            "endpoint": "/v0/user/jl.json",
+            "expected": {
+                "statuscode": 200
+            }
+        },
+        {
+            "name": "jc",
+            "server": "hackernews",
+            "method": "GET",
+            "endpoint": "/v0/user/jc.json",
+            "expected": {
+                "statuscode": 200
+            }
+        },
+        {
+            "name": "jo",
+            "server": "hackernews",
+            "method": "GET",
+            "endpoint": "/v0/user/jo.json",
+            "expected": {
+                "statuscode": 200
+            }
+        },
+        {
+            "name": "401",
+            "server": "hackernews",
+            "method": "GET",
+            "endpoint": "/v0/users/jl.json",
+            "expected": {
+                "statuscode": 401
+            }
+        }
+    ]
+}

@@ -1,0 +1,5 @@
+{
+    "hackernews": {
+        "host": "https://hacker-news.firebaseio.com"
+    }
+}

@@ -1,0 +1,114 @@
+{
+	"tests": [
+		{
+			"name": "121003",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121003.json",
+			"expected": {
+				"statuscode": 200
+			}
+		},
+		{
+			"name": "121004",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121004.json",
+			"expected": {
+				"statuscode": 200,
+				"result": "{\"id\":121004}"
+			}
+		},
+		{
+			"name": "121005",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121005.json",
+			"expected": {
+				"statuscode": 200,
+				"result": "@file"
+			}
+		},
+		{
+			"name": "121006",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121006.json",
+			"expected": {
+				"statuscode": 200
+			}
+		},
+		{
+			"name": "121007",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121007.json",
+			"expected": {
+				"statuscode": 200
+			}
+		},
+		{
+			"name": "121008",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121008.json",
+			"expected": {
+				"statuscode": 200
+			}
+		},
+		{
+			"name": "121009",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121009.json",
+			"expected": {
+				"statuscode": 200
+			}
+		},
+		{
+			"name": "121010",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121010.json",
+			"expected": {
+				"statuscode": 200
+			}
+		},
+		{
+			"name": "121011",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121011.json",
+			"expected": {
+				"statuscode": 200
+			}
+		},
+		{
+			"name": "121012",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121012.json",
+			"expected": {
+				"statuscode": 200
+			}
+		},
+		{
+			"name": "121013",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121013.json",
+			"expected": {
+				"statuscode": 200
+			}
+		},
+		{
+			"name": "121014",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/121014.json",
+			"expected": {
+				"statuscode": 200
+			}
+		}
+	]
+}
