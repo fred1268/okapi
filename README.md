@@ -170,19 +170,19 @@ As we saw earlier, for each test, you will have to define the expected result. o
 To launch okapi, please run the following:
 
 ```shell
-    okapi <options> test_directory
+    okapi [options] <test_directory>
 ```
 
 where options are one or more of the following:
 
-- `test_directory`: the directory where all the test files are located
-- `--servers-file` or `-s` (mandatory): allows to point to the configuration file
-- `--timeout` (default 30s): allows to set a default timeout for all HTTP requests
-- `--verbose` (`--no-verbose`) or `-v` (default no): verbose mode
-- `--parallel` (`--no-parallel`) or `-p` (default yes): run tests in parallel
-- `--user-agent` (default okapi ua): to set the default user agent
-- `--content-type` (default application/json): to set the default content type for requests
-- `--accept` (default application/json): to set the default accept header for responses
+- `--servers-file`, `-s` (mandatory): point to the configuration file's location
+- `--timeout` (default 30s): set a default timeout for all HTTP requests
+- `--verbose`, `-v` (default no): enable verbose mode
+- `--no-parallel` (default parallel): prevent tests from running in parallel
+- `--user-agent` (default okapi UA): set the default user agent
+- `--content-type` (default application/json): set the default content type for requests
+- `--accept` (default application/json): set the default accept header for responses
+- `test_directory`: point to the directory where all the test files are located
 
 ## Output example
 
