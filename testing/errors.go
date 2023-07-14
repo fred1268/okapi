@@ -9,4 +9,7 @@ var (
 	// ErrResultMismatched is returned if server returned content
 	// differs from expected during a test.
 	ErrResultMismatched error = errors.New("result mismatched")
+	// ErrInvalidServerConfiguration is returned if the server
+	// configuration is not valid.
+	ErrInvalidServerConfiguration error = errors.New("invalid server configuration")
 )

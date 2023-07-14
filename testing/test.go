@@ -48,6 +48,9 @@ func readServersConfigs(filename string) (map[string]*ServerConfig, error) {
 
 func readExpectedJSON(directory string, requests []*APIRequest) error {
 	for _, request := range requests {
+		if err := request.validate(); err != nil {
+			return fmt.Errorf("invalid test '%s': %w", request.Name, err)
+		}
 		if request.Expected.Response != "@file" {
 			continue
 		}
@@ -86,7 +89,9 @@ func LoadTests(directory string) (map[string][]*APIRequest, error) {
 		if err = json.NewDecoder(bytes.NewReader(content)).Decode(&tests); err != nil {
 			return nil, fmt.Errorf("cannot decode json file '%s': %w", file.Name(), err)
 		}
-		readExpectedJSON(directory, tests.Tests)
+		if err := readExpectedJSON(directory, tests.Tests); err != nil {
+			return nil, err
+		}
 		allTests[file.Name()] = tests.Tests
 	}
 	return allTests, nil
@@ -106,9 +111,12 @@ func LoadClients(ctx context.Context, cfg *Config) (map[string]*Client, error) {
 	clients := make(map[string]*Client)
 	for key, value := range serverConfigs {
 		client := NewClient(value)
-		if client.config.Auth != nil {
+		if err := client.config.validate(); err != nil {
+			return nil, fmt.Errorf("server %s: invalid configuration: %w", key, err)
+		}
+		if client.config.Auth != nil && client.config.Auth.Login != nil {
 			if apiResponse, err := client.Connect(ctx); err != nil {
-				return nil, fmt.Errorf("cannot connect to server '%s': %w (%v)", key, err, apiResponse)
+				return nil, fmt.Errorf("cannot connect to server '%s' (response: %v): %w", key, apiResponse, err)
 			}
 			if cfg.Verbose {
 				log.Printf("Connected to %s (%s)\n", key, value.Host)

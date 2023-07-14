@@ -15,8 +15,6 @@ import (
 	"github.com/fred1268/okapi/testing/internal/json"
 )
 
-var ErrInvalidJWTSession error = errors.New("invalid JWT session")
-
 // Client represent an API Client for the specified server.
 type Client struct {
 	config *ServerConfig
@@ -120,10 +118,10 @@ func (c *Client) call(ctx context.Context, apiRequest *APIRequest) (response *AP
 	defer func() {
 		err = resp.Body.Close()
 	}()
-	if c.cookie == nil && c.config.Session != nil && c.config.Session.Cookie != "" {
+	if c.cookie == nil && c.config.Auth != nil && c.config.Auth.Session != nil && c.config.Auth.Session.Cookie != "" {
 		cookies := resp.Cookies()
 		for _, cookie := range cookies {
-			if cookie.Name == c.config.Session.Cookie {
+			if cookie.Name == c.config.Auth.Session.Cookie {
 				c.cookie = cookie
 				break
 			}
@@ -134,15 +132,13 @@ func (c *Client) call(ctx context.Context, apiRequest *APIRequest) (response *AP
 	if err != nil {
 		return
 	}
-	if c.jwt == "" && c.config.Session != nil {
-		switch c.config.Session.JWT {
+	if c.jwt == "" && c.config.Auth != nil && c.config.Auth.Session != nil && c.config.Auth.Session.JWT != "" {
+		switch c.config.Auth.Session.JWT {
 		case "payload":
 			// TODO use something like {token:"..."}
 			c.jwt = string(res)
 		case "header":
 			c.jwt = resp.Header.Get("authorization")
-		default:
-			err = ErrInvalidJWTSession
 		}
 	}
 	response = &APIResponse{StatusCode: resp.StatusCode, Response: string(res)}
@@ -176,6 +172,9 @@ func (c *Client) Connect(ctx context.Context) (*APIResponse, error) {
 func (c *Client) Test(ctx context.Context, apiRequest *APIRequest, verbose bool) (response *APIResponse, err error) {
 	start := time.Now()
 	defer func() {
+		if response == nil {
+			response = &APIResponse{}
+		}
 		if err == nil {
 			if verbose {
 				response.Logs = append(response.Logs, fmt.Sprintf("    --- PASS:\t%s (%0.2fs)\n", apiRequest.Name,

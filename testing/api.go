@@ -1,5 +1,10 @@
 package testing
 
+import (
+	"fmt"
+	"strings"
+)
+
 // APIRequest contains all information required to run a test.
 type APIRequest struct {
 	// Name represents the name of the test.
@@ -41,4 +46,14 @@ type APIResponse struct {
 	// Logs represents okapi's logs which are grouped later
 	// on to be nicely displayed even in parallel mode.
 	Logs []string
+}
+
+func (a *APIRequest) validate() error {
+	if a.Server == "" && !strings.Contains(a.Endpoint, "://") {
+		return fmt.Errorf("empty server or relative endpoint")
+	}
+	if a.Method == "" || a.Endpoint == "" || a.Expected == nil {
+		return fmt.Errorf("empty method, endpoint or expectations")
+	}
+	return nil
 }

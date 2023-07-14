@@ -42,10 +42,10 @@ The configuration file looks like the following:
         "expected": {
           "statuscode": 200
         }
+      },
+      "session": {
+        "cookie": "jsessionid"
       }
-    },
-    "session": {
-      "cookie": "jsessionid"
     }
   },
   "exampleserver2": {
@@ -58,10 +58,10 @@ The configuration file looks like the following:
         "expected": {
           "statuscode": 200
         }
+      },
+      "session": {
+        "jwt": "header"
       }
-    },
-    "session": {
-      "jwt": "header"
     }
   },
   "exampleserver3": {
@@ -83,7 +83,7 @@ A Server description contains various fields:
 
 - `host`: the URL of the server (including port and everything you don't want to repeat on every test)
 - `auth.login`: the information required to login the user, using the same format as a test (see below)
-- `session.cookie`: name of the cookie maintaining the session
+- `auth.session.cookie`: name of the cookie maintaining the session
 
 Here `exampleserver1` uses the `/login` endpoint on the same HTTP server than the one used for the tests. Both `email` and `password` are submitted in the `POST`, and `200 OK` is expected upon successful login. The session is maintained by a session cookie called `jsessionid`.
 
