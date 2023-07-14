@@ -3,6 +3,8 @@ package testing
 import (
 	"fmt"
 	"strings"
+
+	"github.com/fred1268/okapi/testing/internal/os"
 )
 
 // APIRequest contains all information required to run a test.
@@ -55,5 +57,7 @@ func (a *APIRequest) validate() error {
 	if a.Method == "" || a.Endpoint == "" || a.Expected == nil {
 		return fmt.Errorf("empty method, endpoint or expectations")
 	}
+	a.Endpoint = os.SubstituteString(a.Endpoint)
+	a.Payload = os.SubstituteString(a.Payload)
 	return nil
 }

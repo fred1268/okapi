@@ -3,6 +3,8 @@ package testing
 import (
 	"fmt"
 	"strings"
+
+	"github.com/fred1268/okapi/testing/internal/os"
 )
 
 // AuthenticationAPIKey represents the API Key
@@ -67,6 +69,8 @@ func (s *ServerConfig) validate() error {
 		} else if s.Auth.APIKey == nil {
 			return fmt.Errorf("no authentication provided")
 		}
+		s.Host = os.SubstituteString(s.Host)
+		s.Auth.APIKey.APIKey = os.SubstituteString(s.Auth.APIKey.APIKey)
 	}
 	return nil
 }

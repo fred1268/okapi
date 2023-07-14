@@ -38,7 +38,7 @@ The configuration file looks like the following:
       "login": {
         "method": "POST",
         "endpoint": "/login",
-        "payload": "{\"email\":\"test@test.com\",\"password\":\"my_password\"}",
+        "payload": "{\"email\":\"test@test.com\",\"password\":\"${env:MY_PASSWORD}\"}",
         "expected": {
           "statuscode": 200
         }
@@ -54,7 +54,7 @@ The configuration file looks like the following:
       "login": {
         "method": "POST",
         "endpoint": "http://localhost:8080/login",
-        "payload": "{\"email\":\"test@test.com\",\"password\":\"my_password\"}",
+        "payload": "{\"email\":\"test@test.com\",\"password\":\"${env:MY_PASSWORD}\"}",
         "expected": {
           "statuscode": 200
         }
@@ -68,7 +68,7 @@ The configuration file looks like the following:
     "host": "http://localhost:8088",
     "auth": {
       "apikey": {
-        "apikey": "Bearer: my_key",
+        "apikey": "Bearer: ${env:MY_APIKEY}",
         "header": "Authorization"
       }
     }
@@ -92,6 +92,8 @@ The second server, `exampleserver2` also uses the `/login` endpoint, but on a di
 The third server, `exampleserver3` uses API Keys for authentication. The apikey field contains the key itself, whereas the header field contains the field used to send the API Key back (usually `Authorization`). Please note that session is not maintained in this example, since the API Key is sent with each request.
 
 The last server, `hackernews`, is a server which doesn't require any authentication.
+
+> ==Environment variable substitution==: please note that `host`, `apikey`, `endpoint` and `payload` can use environment variable substitution. For example, instead of hardcoding your API Key in your server configuration file, you can use `${env:MY_APIKEY}` instead. Upon startup, the `${env:MY_APIKEY}` text will be replaced by the value of `MY_APIKEY` environment variable (i.e. `$MY_APIKEY` or `%MY_APIKEY%`).
 
 ### Test files
 
@@ -146,6 +148,8 @@ A test file contains an array of tests, each of them containing:
   - `result`: the expected payload returned by the endpoint. This field is optional.
 
 > Please note that result can be either a string (including json, like shown in 121004), or a `@file` (like shown in 121005) if you prefer to separate the test from its expected result. This can be handy if the result are complex JSON structs that you can easily copy and paste from somewhere else, or simply prefer to avoid escaping double quotes.
+
+> Please also note that `endpoint` and `payload` can use environment variable substitution using the ${env:XXX} syntax (see previous note about environment variable substitution).
 
 ### Result file
 
