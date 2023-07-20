@@ -17,18 +17,20 @@ import (
 )
 
 type testIn struct {
-	file    string
-	test    *APIRequest
-	client  *Client
-	start   time.Time
-	verbose bool
+	file      string
+	test      *APIRequest
+	client    *Client
+	fileStart time.Time
+	start     time.Time
+	verbose   bool
 }
 
 type testOut struct {
-	file  string
-	start time.Time
-	fail  bool
-	logs  []string
+	file      string
+	fileStart time.Time
+	start     time.Time
+	fail      bool
+	logs      []string
 }
 
 func readServersConfigs(filename string) (map[string]*ServerConfig, error) {
@@ -128,7 +130,7 @@ func LoadClients(ctx context.Context, cfg *Config) (map[string]*Client, error) {
 }
 
 func runOne(ctx context.Context, tin *testIn, out chan<- *testOut) error {
-	tout := &testOut{file: tin.file, start: tin.start}
+	tout := &testOut{file: tin.file, fileStart: tin.fileStart, start: tin.start}
 	response, err := tin.client.Test(ctx, tin.test, tin.verbose)
 	if err != nil {
 		if !errors.Is(err, ErrStatusCodeMismatched) && !errors.Is(err, ErrResultMismatched) {
@@ -159,7 +161,6 @@ func Run(ctx context.Context, cfg *Config) error {
 	if cfg.Parallel {
 		in = make(chan *testIn, runtime.NumCPU())
 	}
-	startTimes := make(map[string]time.Time)
 	results := make(map[string]struct{})
 	var wg sync.WaitGroup
 	go func() {
@@ -199,28 +200,29 @@ func Run(ctx context.Context, cfg *Config) error {
 				}
 				if _, ok := results[tout.file]; ok {
 					log.Printf("FAIL \n")
-					log.Printf("FAIL\t%s\t\t\t%0.3fs\n", tout.file, time.Since(startTimes[tout.file]).Seconds())
+					log.Printf("FAIL\t%s\t\t\t%0.3fs\n", tout.file, time.Since(tout.fileStart).Seconds())
 					log.Printf("FAIL \n")
 				} else {
-					log.Printf("ok\t%-30s\t\t\t%0.3fs\n", tout.file, time.Since(startTimes[tout.file]).Seconds())
+					log.Printf("ok\t%-30s\t\t\t%0.3fs\n", tout.file, time.Since(tout.fileStart).Seconds())
 				}
 			}
 			wg.Done()
 		}
 	}()
 	for key, tests := range allTests {
-		startTimes[key] = time.Now()
+		fileStart := time.Now()
 		for _, test := range tests {
 			if clients[test.Server] == nil {
 				log.Fatalf("invalid server for %s ('%s')\n", test.Name, key)
 				continue
 			}
 			tin := &testIn{
-				file:    key,
-				test:    test,
-				client:  clients[test.Server],
-				start:   time.Now(),
-				verbose: cfg.Verbose,
+				file:      key,
+				test:      test,
+				client:    clients[test.Server],
+				fileStart: fileStart,
+				start:     time.Now(),
+				verbose:   cfg.Verbose,
 			}
 			wg.Add(1)
 			in <- tin
