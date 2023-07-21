@@ -6,7 +6,7 @@ API tests made as easy as table driven tests.
 
 okapi is a program allowing you to test your APIs by using tests files and test cases, pretty much like the `go test` command with table-driven tests. okapi will iterate on all `.test.json` files in the specified directory and runs every test case containted within the files, sequentially or in parallel.
 
-The result of each test case is then compared to the expected result (both the HTTP Response Status Code, as well as the payload). Success or failure are reported.
+The response of each test case is then compared to the expected response (both the HTTP Response Status Code, as well as the payload). Success or failure are reported.
 
 ## Setup
 
@@ -118,7 +118,7 @@ A test file looks like the following:
       "endpoint": "/v0/item/121004.json",
       "expected": {
         "statuscode": 200,
-        "result": "{\"id\":121004}"
+        "response": "{\"id\":121004}"
       }
     },
     {
@@ -128,7 +128,7 @@ A test file looks like the following:
       "endpoint": "/v0/item/121005.json",
       "expected": {
         "statuscode": 200,
-        "result": "@file"
+        "response": "@file"
       }
     }
   ]
@@ -145,9 +145,9 @@ A test file contains an array of tests, each of them containing:
 - `endpoint`: the endpoint of the operation (usually a ReST API of some sort)
 - `expected`: this section contains:
   - `statuscode`: the expected status code returned by the endpoint (200, 401, 403, etc.)
-  - `result`: the expected payload returned by the endpoint. This field is optional.
+  - `response`: the expected payload returned by the endpoint. This field is optional.
 
-> Please note that result can be either a string (including json, like shown in 121004), or a `@file` (like shown in 121005) if you prefer to separate the test from its expected result. This can be handy if the result are complex JSON structs that you can easily copy and paste from somewhere else, or simply prefer to avoid escaping double quotes.
+> Please note that response can be either a string (including json, like shown in 121004), or a `@file` (like shown in 121005) if you prefer to separate the test from its expected response. This can be handy if the response are complex JSON structs that you can easily copy and paste from somewhere else, or simply prefer to avoid escaping double quotes.
 
 > Please also note that `endpoint` and `payload` can use environment variable substitution using the ${env:XXX} syntax (see previous note about environment variable substitution).
 
@@ -155,15 +155,15 @@ A test file contains an array of tests, each of them containing:
 
 A result file doesn't have a specific format, since it represents whatever the server you are testing returns. The only important thing about the result file, is that it must be named `<name>.expected.json` within the current directory, where `name` is the name of the current test.
 
-## Expected result
+## Expected response
 
-As we saw earlier, for each test, you will have to define the expected result. okapi will always compare the HTTP Response Status Code with the one provided, and can optionally, compare the returned payload. The way it works is pretty simple:
+As we saw earlier, for each test, you will have to define the expected response. okapi will always compare the HTTP Response Status Code with the one provided, and can optionally, compare the returned payload. The way it works is pretty simple:
 
-- if the result is in JSON format:
-  - if a field is present in expected, okapi will also check for its presence in the result
-  - if the result contains other fields not mentioned in `expected`, they will be ignored
-- if the result is a non-JSON string:
-  - the result is compared to `expected` and success or failure is reported
+- if the response is in JSON format:
+  - if a field is present in expected, okapi will also check for its presence in the response
+  - if the response contains other fields not mentioned in `expected`, they will be ignored
+- if the response is a non-JSON string:
+  - the response is compared to `expected` and success or failure is reported
 
 ## Running okapi :giraffe:
 

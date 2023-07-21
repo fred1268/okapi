@@ -198,7 +198,7 @@ func (c *Client) Test(ctx context.Context, apiRequest *APIRequest, verbose bool)
 	}
 	err = json.CompareJSONStrings(ctx, apiRequest.Expected.Response, response.Response)
 	if errors.Is(err, json.ErrJSONMismatched) {
-		err = errors.Join(err, ErrResultMismatched)
+		err = errors.Join(err, ErrResponseMismatched)
 	}
 	return
 }

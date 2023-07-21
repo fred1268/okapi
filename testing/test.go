@@ -133,7 +133,7 @@ func runOne(ctx context.Context, tin *testIn, out chan<- *testOut) error {
 	tout := &testOut{file: tin.file, fileStart: tin.fileStart, start: tin.start}
 	response, err := tin.client.Test(ctx, tin.test, tin.verbose)
 	if err != nil {
-		if !errors.Is(err, ErrStatusCodeMismatched) && !errors.Is(err, ErrResultMismatched) {
+		if !errors.Is(err, ErrStatusCodeMismatched) && !errors.Is(err, ErrResponseMismatched) {
 			tout.fail = true
 			tout.logs = append(tout.logs, fmt.Sprintf("cannot run test '%s': %v", tin.file, err))
 			out <- tout
