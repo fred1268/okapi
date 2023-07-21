@@ -22,7 +22,7 @@ type testIn struct {
 	client    *Client
 	fileStart time.Time
 	start     time.Time
-	verbose   bool
+	config    *Config
 }
 
 type testOut struct {
@@ -131,7 +131,7 @@ func LoadClients(ctx context.Context, cfg *Config) (map[string]*Client, error) {
 
 func runOne(ctx context.Context, tin *testIn, out chan<- *testOut) error {
 	tout := &testOut{file: tin.file, fileStart: tin.fileStart, start: tin.start}
-	response, err := tin.client.Test(ctx, tin.test, tin.verbose)
+	response, err := tin.client.Test(ctx, tin.test, tin.config.Verbose)
 	if err != nil {
 		if !errors.Is(err, ErrStatusCodeMismatched) && !errors.Is(err, ErrResponseMismatched) {
 			tout.fail = true
@@ -144,6 +144,24 @@ func runOne(ctx context.Context, tin *testIn, out chan<- *testOut) error {
 	tout.logs = append(tout.logs, response.Logs...)
 	out <- tout
 	return nil
+}
+
+func worker(ctx context.Context, in chan []*testIn, out chan *testOut, done chan bool) {
+	for {
+		select {
+		case runs := <-in:
+			for _, run := range runs {
+				if run.config.FileParallel {
+					run.start = time.Now()
+				}
+				if err := runOne(ctx, run, out); err != nil {
+					continue
+				}
+			}
+		case <-done:
+			return
+		}
+	}
 }
 
 // Run starts the tests according to the provided config.
@@ -162,26 +180,16 @@ func Run(ctx context.Context, cfg *Config) error {
 	start := time.Now()
 	out := make(chan *testOut)
 	in := make(chan []*testIn)
-	if cfg.Parallel || cfg.FileParallel {
-		in = make(chan []*testIn, runtime.NumCPU())
-	}
+	done := make(chan bool)
 	results := make(map[string]struct{})
 	var wg sync.WaitGroup
-	go func() {
-		for {
-			runs := <-in
-			go func() {
-				for _, run := range runs {
-					if cfg.FileParallel {
-						run.start = time.Now()
-					}
-					if err := runOne(ctx, run, out); err != nil {
-						return
-					}
-				}
-			}()
-		}
-	}()
+	cpu := 1
+	if cfg.Parallel || cfg.FileParallel {
+		cpu = runtime.NumCPU()
+	}
+	for i := 0; i < cpu; i++ {
+		go worker(ctx, in, out, done)
+	}
 	go func() {
 		counts := make(map[string]int)
 		logs := make(map[string][]string)
@@ -225,32 +233,34 @@ func Run(ctx context.Context, cfg *Config) error {
 	}()
 	for key, tests := range allTests {
 		fileStart := time.Now()
-		tins := make([]*testIn, len(tests))
-		for n, test := range tests {
+		var tins []*testIn
+		for _, test := range tests {
 			if clients[test.Server] == nil {
 				log.Fatalf("invalid server for %s ('%s')\n", test.Name, key)
 				continue
 			}
-			tin := &testIn{
+			tins = append(tins, &testIn{
 				file:      key,
 				test:      test,
 				client:    clients[test.Server],
 				fileStart: fileStart,
 				start:     time.Now(),
-				verbose:   cfg.Verbose,
-			}
-			tins[n] = tin
+				config:    cfg,
+			})
 			if !cfg.FileParallel {
 				wg.Add(1)
 				in <- tins
+				tins = nil
 			}
 		}
 		if cfg.FileParallel {
 			wg.Add(1)
 			in <- tins
+			tins = nil
 		}
 	}
 	wg.Wait()
+	close(done)
 	close(in)
 	close(out)
 	log.Printf("okapi total run time: %0.3fs\n", time.Since(start).Seconds())
