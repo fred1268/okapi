@@ -3,6 +3,7 @@ package testing
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -12,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/fred1268/okapi/testing/internal/json"
+	ijson "github.com/fred1268/okapi/testing/internal/json"
 )
 
 // Client represent an API Client for the specified server.
@@ -85,7 +86,9 @@ func (c *Client) getRequest(ctx context.Context, apiRequest *APIRequest) (*http.
 	if c.config.Auth != nil && c.config.Auth.APIKey != nil {
 		req.Header.Set(c.config.Auth.APIKey.Header, c.config.Auth.APIKey.APIKey)
 	}
-	req.Header.Add("User-Agent", c.config.UserAgent)
+	if c.config.UserAgent != "" {
+		req.Header.Add("User-Agent", c.config.UserAgent)
+	}
 	if c.jwt != "" {
 		req.Header.Set("authorization", fmt.Sprintf("Bearer: %s", c.jwt))
 	}
@@ -135,10 +138,21 @@ func (c *Client) call(ctx context.Context, apiRequest *APIRequest) (response *AP
 	if c.jwt == "" && c.config.Auth != nil && c.config.Auth.Session != nil && c.config.Auth.Session.JWT != "" {
 		switch c.config.Auth.Session.JWT {
 		case "payload":
-			// TODO use something like {token:"..."}
 			c.jwt = string(res)
 		case "header":
 			c.jwt = resp.Header.Get("authorization")
+		default: // "payload.xxx"
+			var payload interface{}
+			err = json.Unmarshal([]byte(res), &payload)
+			if err != nil {
+				return
+			}
+			if obj, ok := payload.(map[string]any); ok {
+				if c.jwt, ok = obj[c.config.Auth.Session.JWT[8:]].(string); !ok {
+					err = fmt.Errorf("cannot read JWT from payload")
+					return
+				}
+			}
 		}
 	}
 	response = &APIResponse{StatusCode: resp.StatusCode, Response: string(res)}
@@ -196,8 +210,8 @@ func (c *Client) Test(ctx context.Context, apiRequest *APIRequest, verbose bool)
 		err = ErrStatusCodeMismatched
 		return
 	}
-	err = json.CompareJSONStrings(ctx, apiRequest.Expected.Response, response.Response)
-	if errors.Is(err, json.ErrJSONMismatched) {
+	err = ijson.CompareJSONStrings(ctx, apiRequest.Expected.Response, response.Response)
+	if errors.Is(err, ijson.ErrJSONMismatched) {
 		err = errors.Join(err, ErrResponseMismatched)
 	}
 	return

@@ -12,21 +12,6 @@ import (
 	"github.com/fred1268/okapi/testing/internal/log"
 )
 
-func readServersConfigs(filename string) (map[string]*ServerConfig, error) {
-	if _, err := os.Stat(filename); os.IsNotExist(err) {
-		return nil, fmt.Errorf("file '%s' does not exist: %w", filename, err)
-	}
-	content, err := os.ReadFile(filename)
-	if err != nil {
-		return nil, fmt.Errorf("cannot open file '%s': %w", filename, err)
-	}
-	var config map[string]*ServerConfig
-	if err = json.NewDecoder(bytes.NewReader(content)).Decode(&config); err != nil {
-		return nil, fmt.Errorf("cannot decode file '%s': %w", filename, err)
-	}
-	return config, nil
-}
-
 func readJSONDependencies(directory string, requests []*APIRequest) error {
 	for _, request := range requests {
 		if err := request.validate(); err != nil {
@@ -89,6 +74,21 @@ func LoadTests(directory string) (map[string][]*APIRequest, error) {
 		allTests[file.Name()] = tests.Tests
 	}
 	return allTests, nil
+}
+
+func readServersConfigs(filename string) (map[string]*ServerConfig, error) {
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		return nil, fmt.Errorf("file '%s' does not exist: %w", filename, err)
+	}
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("cannot open file '%s': %w", filename, err)
+	}
+	var config map[string]*ServerConfig
+	if err = json.NewDecoder(bytes.NewReader(content)).Decode(&config); err != nil {
+		return nil, fmt.Errorf("cannot decode file '%s': %w", filename, err)
+	}
+	return config, nil
 }
 
 // LoadClients reads the configuration file, creates a map of *Client,

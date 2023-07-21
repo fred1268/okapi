@@ -38,7 +38,7 @@ The configuration file looks like the following:
     "auth": {
       "login": {
         "method": "POST",
-        "endpoint": "/login",
+        "endpoint": "http://localhost:8080/login",
         "payload": "{\"email\":\"test@test.com\",\"password\":\"${env:MY_PASSWORD}\"}",
         "expected": {
           "statuscode": 200
@@ -88,7 +88,9 @@ A Server description contains various fields:
 
 Here `exampleserver1` uses the `/login` endpoint on the same HTTP server than the one used for the tests. Both `email` and `password` are submitted in the `POST`, and `200 OK` is expected upon successful login. The session is maintained by a session cookie called `jsessionid`.
 
-The second server, `exampleserver2` also uses the `/login` endpoint, but on a different server, hence the fully qualified URL given as the endpoint. The sesssion is maintained using a JWT (JSON Web Token) which is obtained though a header (namely `Authorization`). Should your JWT be returned as a payload, you can specify `"payload"` instead of `"header"`. JWT is always sent back using the `Authorization` header in the form of `Authorization: Bearer my_jwt`.
+The second server, `exampleserver2` also uses the `/login` endpoint, but on a different server, hence the fully qualified URL given as the endpoint. The sesssion is maintained using a JWT (JSON Web Token) which is obtained though a header (namely `Authorization`). Should your JWT be returned as a payload, you can specify `"payload"` instead of `"header"`. You can even use `payload.token` for instance, if your JWT is returned in a `token` field of a JSON object. JWT is always sent back using the `Authorization` header in the form of `Authorization: Bearer my_jwt`.
+
+> Please note that in the case of the server definition, `endpoint` must be an fully qualified URL, not a relative endpoint like in the test files. Thus `endpoint` must start with `http://` or `https://`.
 
 The third server, `exampleserver3` uses API Keys for authentication. The apikey field contains the key itself, whereas the header field contains the field used to send the API Key back (usually `Authorization`). Please note that session is not maintained in this example, since the API Key is sent with each request.
 

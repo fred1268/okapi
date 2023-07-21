@@ -55,6 +55,9 @@ type ServerConfig struct {
 }
 
 func (s *ServerConfig) validate() error {
+	if s.Host == "" {
+		return fmt.Errorf("empty host name")
+	}
 	if s.Auth != nil {
 		if s.Auth.Login != nil {
 			if err := s.Auth.Login.validate(); err != nil {
@@ -63,14 +66,17 @@ func (s *ServerConfig) validate() error {
 			if s.Auth.Session == nil || s.Auth.Session.Cookie == "" && s.Auth.Session.JWT == "" {
 				return fmt.Errorf("no or invalid session information")
 			}
-			if s.Auth.Session.JWT != "" && s.Auth.Session.JWT != "header" && !strings.HasPrefix(s.Auth.Session.JWT, "payload") {
+			if s.Auth.Session.JWT != "" && s.Auth.Session.JWT != "header" && s.Auth.Session.JWT != "payload" &&
+				!strings.HasPrefix(s.Auth.Session.JWT, "payload.") {
 				return fmt.Errorf("no or invalid JWT information")
 			}
 		} else if s.Auth.APIKey == nil {
 			return fmt.Errorf("no authentication provided")
 		}
 		s.Host = os.SubstituteString(s.Host)
-		s.Auth.APIKey.APIKey = os.SubstituteString(s.Auth.APIKey.APIKey)
+		if s.Auth.APIKey != nil {
+			s.Auth.APIKey.APIKey = os.SubstituteString(s.Auth.APIKey.APIKey)
+		}
 	}
 	return nil
 }
