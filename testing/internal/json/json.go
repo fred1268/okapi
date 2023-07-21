@@ -10,6 +10,31 @@ import (
 
 var ErrJSONMismatched error = errors.New("json mismatched")
 
+func compareSlices(ctx context.Context, src, dst []any) error {
+	for n, value := range src {
+		dstValue := dst[n]
+		if reflect.TypeOf(value) != reflect.TypeOf(dstValue) {
+			return ErrJSONMismatched
+		}
+		switch value.(type) {
+		case nil:
+		case map[string]any:
+			if err := compareMaps(ctx, value.(map[string]any), dstValue.(map[string]any)); err != nil {
+				return err
+			}
+		case []any:
+			if err := compareSlices(ctx, value.([]any), dstValue.([]any)); err != nil {
+				return err
+			}
+		default:
+			if value != dstValue {
+				return ErrJSONMismatched
+			}
+		}
+	}
+	return nil
+}
+
 func compareMaps(ctx context.Context, src, dst map[string]any) error {
 	for key, value := range src {
 		dstValue, found := dst[key]
@@ -23,6 +48,10 @@ func compareMaps(ctx context.Context, src, dst map[string]any) error {
 		case nil:
 		case map[string]any:
 			if err := compareMaps(ctx, value.(map[string]any), dstValue.(map[string]any)); err != nil {
+				return err
+			}
+		case []any:
+			if err := compareSlices(ctx, value.([]any), dstValue.([]any)); err != nil {
 				return err
 			}
 		default:
