@@ -134,6 +134,9 @@ func runOne(ctx context.Context, tin *testIn, out chan<- *testOut) error {
 	response, err := tin.client.Test(ctx, tin.test, tin.verbose)
 	if err != nil {
 		if !errors.Is(err, ErrStatusCodeMismatched) && !errors.Is(err, ErrResultMismatched) {
+			tout.fail = true
+			tout.logs = append(tout.logs, fmt.Sprintf("cannot run test '%s': %v", tin.file, err))
+			out <- tout
 			return fmt.Errorf("cannot run test '%s': %w", tin.file, err)
 		}
 		tout.fail = true
@@ -156,21 +159,27 @@ func Run(ctx context.Context, cfg *Config) error {
 	if err != nil {
 		return fmt.Errorf("cannot read tests: %w", err)
 	}
+	start := time.Now()
 	out := make(chan *testOut)
-	in := make(chan *testIn)
-	if cfg.Parallel {
-		in = make(chan *testIn, runtime.NumCPU())
+	in := make(chan []*testIn)
+	if cfg.Parallel || cfg.FileParallel {
+		in = make(chan []*testIn, runtime.NumCPU())
 	}
 	results := make(map[string]struct{})
 	var wg sync.WaitGroup
 	go func() {
 		for {
-			run := <-in
-			if err := runOne(ctx, run, out); err != nil {
-				log.Fatalf("runOne failed: %v\n", err)
-				wg.Done()
-				return
-			}
+			runs := <-in
+			go func() {
+				for _, run := range runs {
+					if cfg.FileParallel {
+						run.start = time.Now()
+					}
+					if err := runOne(ctx, run, out); err != nil {
+						return
+					}
+				}
+			}()
 		}
 	}()
 	go func() {
@@ -205,13 +214,19 @@ func Run(ctx context.Context, cfg *Config) error {
 				} else {
 					log.Printf("ok\t%-30s\t\t\t%0.3fs\n", tout.file, time.Since(tout.fileStart).Seconds())
 				}
+				if cfg.FileParallel {
+					wg.Done()
+				}
 			}
-			wg.Done()
+			if !cfg.FileParallel {
+				wg.Done()
+			}
 		}
 	}()
 	for key, tests := range allTests {
 		fileStart := time.Now()
-		for _, test := range tests {
+		tins := make([]*testIn, len(tests))
+		for n, test := range tests {
 			if clients[test.Server] == nil {
 				log.Fatalf("invalid server for %s ('%s')\n", test.Name, key)
 				continue
@@ -224,12 +239,20 @@ func Run(ctx context.Context, cfg *Config) error {
 				start:     time.Now(),
 				verbose:   cfg.Verbose,
 			}
+			tins[n] = tin
+			if !cfg.FileParallel {
+				wg.Add(1)
+				in <- tins
+			}
+		}
+		if cfg.FileParallel {
 			wg.Add(1)
-			in <- tin
+			in <- tins
 		}
 	}
 	wg.Wait()
 	close(in)
 	close(out)
+	log.Printf("okapi total run time: %0.3fs\n", time.Since(start).Seconds())
 	return nil
 }
