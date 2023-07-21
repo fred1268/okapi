@@ -35,9 +35,18 @@ func compareMaps(ctx context.Context, src, dst map[string]any) error {
 }
 
 func CompareJSONStrings(ctx context.Context, wanted, got string) error {
+	// perfectly identical
 	if wanted == "" || got == wanted {
 		return nil
 	}
+	// one is not a json object, compare strings
+	if !strings.Contains(wanted, "{") || !strings.Contains(got, "{") {
+		if wanted != got {
+			return ErrJSONMismatched
+		}
+		return nil
+	}
+	// both are json, compare json
 	var g, w interface{}
 	err := json.Unmarshal([]byte(strings.ToLower(got)), &g)
 	if err != nil {
