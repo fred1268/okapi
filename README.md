@@ -8,7 +8,7 @@ okapi is a program allowing you to test your APIs by using tests files and test 
 
 The response of each test case is then compared to the expected response (both the HTTP Response Status Code, as well as the payload). Success or failure are reported.
 
-## Setup
+## Installation
 
 Pretty easy to install:
 
@@ -20,7 +20,7 @@ go install github.com/fred1268/okapi@latest
 
 ## Configuring okapi :giraffe:
 
-In order to run, okapi requires at least two files:
+In order to run, okapi requires the following files:
 
 - a configuration file
 - one or more test files
@@ -154,18 +154,18 @@ A test file contains an array of tests, each of them containing:
 - `server`: the name of the server used to perform the test (declared in the configuration file)
 - `method`: the method to perform the operation (`GET`, `POST`, `PUT`, etc.)
 - `endpoint`: the endpoint of the operation (usually a ReST API of some sort)
-- `payload`: the payload to be sent to the endpoint (usually with a POST, PUT or PATCH method)
+- `payload`: the payload to be sent to the endpoint (usually with a POST, PUT or PATCH method). This field is optional
 - `expected`: this section contains:
   - `statuscode`: the expected status code returned by the endpoint (200, 401, 403, etc.)
-  - `response`: the expected payload returned by the endpoint. This field is optional.
+  - `response`: the expected payload returned by the endpoint. This field is optional
 
-> Please note that `payload` and `response` can be either a string (including json, as shown in 121004), or a `@file` (as shown in 121005) or even a `@custom_filename.json` (as shown in doesnotwork). This is useful if you prefer to separate the test from its expected `payload` or `response`. This is particularly handy if the `payload` or `response` are complex JSON structs that you can easily copy and paste from somewhere else, or simply prefer to avoid escaping double quotes.
+> Please note that `payload` and `response` can be either a string (including json, as shown in 121004), or `@file` (as shown in 121005) or even a `@custom_filename.json` (as shown in doesnotwork). This is useful if you prefer to separate the test from its `payload` or expected `response`. This is particularly handy if the `payload` or `response` are complex JSON structs that you can easily copy and paste from somewhere else, or simply prefer to avoid escaping double quotes.
 
 > Please also note that `endpoint` and `payload` can use environment variable substitution using the ${env:XXX} syntax (see previous note about environment variable substitution).
 
 ### Payload and Response files
 
-Payload and response files don't have a specific format, since they represent whatever the server you are testing is expecting from or returns to you. The only important things to know about the payload and response files, is that they must be placed in the test directory, and must be named `<name_of_test>.payload.json` and `<name_of_test>.expected.json` (`121005.expected.json` in the example above) respectively if you specify `@file` or `your_own_custom_filename.json` if you used a custom file name (`@custom_filename.json` in the example above).
+Payload and response files don't have a specific format, since they represent whatever the server you are testing is expecting from or returns to you. The only important things to know about the payload and response files, is that they must be placed in the test directory, and must be named `<name_of_test>.payload.json` and `<name_of_test>.expected.json` (`121005.expected.json` in the example above) respectively if you specify `@file`. If you decide to use a custom filename for your `payload` and/or `response`, then you can specify the name of your choice prefixed by `@` (`@custom_filename.json` in the example above).
 
 ## Expected response
 
@@ -198,7 +198,7 @@ where options are one or more of the following:
 - `--accept` (default application/json): set the default accept header for responses
 - `test_directory`: point to the directory where all the test files are located
 
-> Please note that the `--file-parallel` mode is particularly handy if you want to have a sequence of tests that needs to run in a specific order. For instance, you may want to create a resource, update it, and delete it. Placing these three tests in the same file and in the right order, and then running okapi in `--file-parallel` mode should do the trick. The default mode is used for unit tests, whereas the `--file-parallel` is used for (complex) test scenarios.
+> Please note that the `--file-parallel` mode is particularly handy if you want to have a sequence of tests that needs to run in a specific order. For instance, you may want to create a resource, update it, and delete it. Placing these three tests in the same file and in the right order, and then running okapi with `--file-parallel` should do the trick. The default mode is used for unit tests, whereas the `--file-parallel` mode is used for (complex) test scenarios.
 
 ## Output example
 
