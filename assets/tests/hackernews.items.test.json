@@ -35,7 +35,8 @@
 			"method": "GET",
 			"endpoint": "/v0/item/121006.json",
 			"expected": {
-				"statuscode": 200
+				"statuscode": 200,
+				"response": "@result_test_121006.json"
 			}
 		},
 		{
