@@ -3,6 +3,7 @@ package os
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -33,19 +34,39 @@ func findValue(key string, captures map[string]any) string {
 		nextKey = key[n+1:]
 		key = key[:n]
 	}
+	var index int
+	n = strings.Index(key, "[")
+	if n != -1 {
+		i, err := strconv.ParseInt(key[n+1:len(key)-1], 10, 64)
+		if err != nil {
+			return key
+		}
+		index = int(i)
+		key = key[:n]
+	}
 	v, ok := captures[key]
 	if !ok {
 		return key
 	}
 	switch value := v.(type) {
-	case float32, float64:
+	case float64:
 		return fmt.Sprintf("%0.0f", value)
 	case string:
 		return value
 	case map[string]any:
 		return findValue(nextKey, value)
 	case []any:
-		return key
+		if index >= len(value) {
+			return "array index out of bounds"
+		}
+		switch element := value[index].(type) {
+		case float64:
+			return fmt.Sprintf("%0.0f", element)
+		case string:
+			return element
+		case map[string]any:
+			return findValue(nextKey, element)
+		}
 	}
 	return key
 }
