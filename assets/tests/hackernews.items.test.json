@@ -10,13 +10,23 @@
 			}
 		},
 		{
-			"name": "121004",
+			"name": "cap121004",
 			"server": "hackernews",
 			"method": "GET",
 			"endpoint": "/v0/item/121004.json",
+			"capture": true,
+			"expected": {
+				"statuscode": 200
+			}
+		},
+		{
+			"name": "121004",
+			"server": "hackernews",
+			"method": "GET",
+			"endpoint": "/v0/item/${cap121004.id}.json",
 			"expected": {
 				"statuscode": 200,
-				"result": "{\"id\":121004}"
+				"response": "{\"id\":${cap121004.id}}"
 			}
 		},
 		{
@@ -26,7 +36,7 @@
 			"endpoint": "/v0/item/121005.json",
 			"expected": {
 				"statuscode": 200,
-				"result": "@file"
+				"response": "@file"
 			}
 		},
 		{
@@ -35,7 +45,8 @@
 			"method": "GET",
 			"endpoint": "/v0/item/121006.json",
 			"expected": {
-				"statuscode": 200
+				"statuscode": 200,
+				"response": "@result_test_121006.json"
 			}
 		},
 		{

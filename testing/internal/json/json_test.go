@@ -1,7 +1,6 @@
 package json
 
 import (
-	"context"
 	"testing"
 )
 
@@ -56,7 +55,7 @@ func TestCompareJSON(t *testing.T) {
 		res := tt.result
 		t.Run(name, func(t *testing.T) {
 			t.Parallel()
-			err := CompareJSONStrings(context.Background(), src, dst)
+			err := CompareJSONStrings(src, dst)
 			if err != res {
 				t.Errorf("wanted: '%s', got '%s'", dst, src)
 			}
