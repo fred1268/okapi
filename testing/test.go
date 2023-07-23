@@ -38,9 +38,10 @@ func runOne(ctx context.Context, tin *testIn, out chan<- *testOut) (*APIResponse
 	if err != nil {
 		if !errors.Is(err, ErrStatusCodeMismatched) && !errors.Is(err, ErrResponseMismatched) {
 			tout.fail = true
-			tout.logs = append(tout.logs, fmt.Sprintf("cannot run test '%s': %v", tin.file, err))
+			tout.logs = append(tout.logs, fmt.Sprintf("    --- FAIL:\tcannot run test '%s' from '%s': %v\n",
+				tin.test.Name, tin.file, err))
 			out <- tout
-			return response, fmt.Errorf("cannot run test '%s': %w", tin.file, err)
+			return response, fmt.Errorf("cannot run test '%s' from '%s': %w", tin.test.Name, tin.file, err)
 		}
 		tout.fail = true
 	}
@@ -136,6 +137,9 @@ func Run(ctx context.Context, cfg *Config) error {
 	allTests, err := LoadTests(cfg.Tests)
 	if err != nil {
 		return fmt.Errorf("cannot read tests: %w", err)
+	}
+	if len(allTests) == 0 {
+		return fmt.Errorf("no tests")
 	}
 	start := time.Now()
 	out := make(chan *testOut)

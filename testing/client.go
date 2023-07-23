@@ -191,7 +191,11 @@ func (c *Client) Test(ctx context.Context, apiRequest *APIRequest, verbose bool)
 		}
 		if err == nil {
 			if verbose {
-				response.Logs = append(response.Logs, fmt.Sprintf("    --- PASS:\t%s (%0.2fs)\n", apiRequest.Name,
+				result := "PASS"
+				if apiRequest.Skip {
+					result = "SKIP"
+				}
+				response.Logs = append(response.Logs, fmt.Sprintf("    --- %s:\t%s (%0.2fs)\n", result, apiRequest.Name,
 					time.Since(start).Seconds()))
 			}
 		} else {
@@ -202,6 +206,9 @@ func (c *Client) Test(ctx context.Context, apiRequest *APIRequest, verbose bool)
 				response.StatusCode))
 		}
 	}()
+	if apiRequest.Skip {
+		return
+	}
 	response, err = c.call(ctx, apiRequest)
 	if err != nil {
 		return
@@ -210,7 +217,7 @@ func (c *Client) Test(ctx context.Context, apiRequest *APIRequest, verbose bool)
 		err = ErrStatusCodeMismatched
 		return
 	}
-	err = ijson.CompareJSONStrings(ctx, apiRequest.Expected.Response, response.Response)
+	err = ijson.CompareJSONStrings(apiRequest.Expected.Response, response.Response)
 	if errors.Is(err, ijson.ErrJSONMismatched) {
 		err = errors.Join(err, ErrResponseMismatched)
 	}

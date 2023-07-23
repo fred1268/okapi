@@ -162,11 +162,12 @@ A test file looks like the following:
 
 A test file contains an array of tests, each of them containing:
 
-- `name`: a unique name to globally identify the test
+- `name`: a unique name to globally identify the test (test name must not contain the `. (period)` character)
 - `server`: the name of the server used to perform the test (declared in the configuration file)
 - `method`: the method to perform the operation (`GET`, `POST`, `PUT`, etc.)
 - `endpoint`: the endpoint of the operation (usually a ReST API of some sort)
 - `capture`: true if you want to capture the response of this test so that it can be used in another test in this file (fileParallel mode only)
+- `skip`: true to have okapi skip this test (useful when debugging a script file)
 - `payload`: the payload to be sent to the endpoint (usually with a POST, PUT or PATCH method). This field is optional
 - `expected`: this section contains:
   - `statuscode`: the expected status code returned by the endpoint (200, 401, 403, etc.)

@@ -36,8 +36,12 @@ type APIRequest struct {
 	Expected *APIResponse
 	// Capture allows okapi to capture the response as
 	// a JSON object and make it available for the next
-	// tests (fileParallel modes only)
+	// tests (fileParallel modes only).
 	Capture bool
+	// Skip will make okapi skip this test. Can use useful
+	// when debugging script files or to allow tests to
+	// pass while a bug is being fixed for instance.
+	Skip bool
 }
 
 // APIResponse contains information about the response from
@@ -55,6 +59,9 @@ type APIResponse struct {
 }
 
 func (a *APIRequest) validate() error {
+	if strings.Contains(a.Name, ".") {
+		return fmt.Errorf("name cannot contain the . (period) character")
+	}
 	if a.Server == "" && !strings.Contains(a.Endpoint, "://") {
 		return fmt.Errorf("empty server or relative endpoint")
 	}
