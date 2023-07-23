@@ -2,13 +2,16 @@ package testing
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"runtime"
+	"strings"
 	"sync"
 	"time"
 
 	"github.com/fred1268/okapi/testing/internal/log"
+	"github.com/fred1268/okapi/testing/internal/os"
 )
 
 type testIn struct {
@@ -29,7 +32,7 @@ type testOut struct {
 	config    *Config
 }
 
-func runOne(ctx context.Context, tin *testIn, out chan<- *testOut) error {
+func runOne(ctx context.Context, tin *testIn, out chan<- *testOut) (*APIResponse, error) {
 	tout := &testOut{file: tin.file, fileStart: tin.fileStart, start: tin.start, config: tin.config}
 	response, err := tin.client.Test(ctx, tin.test, tin.config.Verbose)
 	if err != nil {
@@ -37,25 +40,40 @@ func runOne(ctx context.Context, tin *testIn, out chan<- *testOut) error {
 			tout.fail = true
 			tout.logs = append(tout.logs, fmt.Sprintf("cannot run test '%s': %v", tin.file, err))
 			out <- tout
-			return fmt.Errorf("cannot run test '%s': %w", tin.file, err)
+			return response, fmt.Errorf("cannot run test '%s': %w", tin.file, err)
 		}
 		tout.fail = true
 	}
 	tout.logs = append(tout.logs, response.Logs...)
 	out <- tout
-	return nil
+	return response, nil
 }
 
 func worker(ctx context.Context, in chan []*testIn, out chan *testOut, done chan bool) {
 	for {
 		select {
 		case runs := <-in:
+			captures := make(map[string]any)
 			for _, run := range runs {
+				run.test.Endpoint = os.SubstituteCapturedVariable(run.test.Endpoint, captures)
+				run.test.Payload = os.SubstituteCapturedVariable(run.test.Payload, captures)
+				run.test.Expected.Response = os.SubstituteCapturedVariable(run.test.Expected.Response, captures)
 				if run.config.FileParallel {
 					run.start = time.Now()
 				}
-				if err := runOne(ctx, run, out); err != nil {
+				resp, err := runOne(ctx, run, out)
+				if err != nil {
 					continue
+				}
+				if run.test.Capture {
+					var r interface{}
+					err := json.Unmarshal([]byte(strings.ToLower(resp.Response)), &r)
+					if err != nil {
+						continue
+					}
+					if obj, ok := r.(map[string]any); ok {
+						captures[run.test.Name] = obj
+					}
 				}
 			}
 		case <-done:

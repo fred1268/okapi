@@ -115,13 +115,23 @@ A test file looks like the following:
       }
     },
     {
-      "name": "121004",
+      "name": "cap121004",
       "server": "hackernews",
       "method": "GET",
       "endpoint": "/v0/item/121004.json",
+      "capture": true,
+      "expected": {
+        "statuscode": 200
+      }
+    },
+    {
+      "name": "121004",
+      "server": "hackernews",
+      "method": "GET",
+      "endpoint": "/v0/item/${cap121004.id}.json",
       "expected": {
         "statuscode": 200,
-        "response": "{\"id\":121004}"
+        "response": "{\"id\":${cap121004.id}}"
       }
     },
     {
@@ -156,6 +166,7 @@ A test file contains an array of tests, each of them containing:
 - `server`: the name of the server used to perform the test (declared in the configuration file)
 - `method`: the method to perform the operation (`GET`, `POST`, `PUT`, etc.)
 - `endpoint`: the endpoint of the operation (usually a ReST API of some sort)
+- `capture`: true if you want to capture the response of this test so that it can be used in another test in this file (fileParallel mode only)
 - `payload`: the payload to be sent to the endpoint (usually with a POST, PUT or PATCH method). This field is optional
 - `expected`: this section contains:
   - `statuscode`: the expected status code returned by the endpoint (200, 401, 403, etc.)
@@ -164,6 +175,8 @@ A test file contains an array of tests, each of them containing:
 > Please note that `payload` and `response` can be either a string (including json, as shown in 121004), or `@file` (as shown in 121005) or even a `@custom_filename.json` (as shown in doesnotwork). This is useful if you prefer to separate the test from its `payload` or expected `response`. This is particularly handy if the `payload` or `response` are complex JSON structs that you can easily copy and paste from somewhere else, or simply prefer to avoid escaping double quotes.
 
 > Please also note that `endpoint` and `payload` can use environment variable substitution using the ${env:XXX} syntax (see previous note about environment variable substitution).
+
+> Lastly, please note that `endpoint` and `response` can use captured variable (i.e. variables inside a captured response, see `"capture":true`). For instance, to use the `id` field returned inside of a `user` object in test `mytest`, you will use `${mytest.user.id}`. In the example above, we used `${cap121004.id}` to retrieve the ID of the returned response in test `cap121004`.
 
 ### Payload and Response files
 

@@ -73,9 +73,9 @@ func (s *ServerConfig) validate() error {
 		} else if s.Auth.APIKey == nil {
 			return fmt.Errorf("no authentication provided")
 		}
-		s.Host = os.SubstituteString(s.Host)
+		s.Host = os.SubstituteEnvironmentVariable(s.Host)
 		if s.Auth.APIKey != nil {
-			s.Auth.APIKey.APIKey = os.SubstituteString(s.Auth.APIKey.APIKey)
+			s.Auth.APIKey.APIKey = os.SubstituteEnvironmentVariable(s.Auth.APIKey.APIKey)
 		}
 	}
 	return nil

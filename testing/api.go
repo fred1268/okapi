@@ -34,6 +34,10 @@ type APIRequest struct {
 	// everything goes according to the plan. The Logs
 	// field is ignored in this context.
 	Expected *APIResponse
+	// Capture allows okapi to capture the response as
+	// a JSON object and make it available for the next
+	// tests (fileParallel modes only)
+	Capture bool
 }
 
 // APIResponse contains information about the response from
@@ -57,7 +61,7 @@ func (a *APIRequest) validate() error {
 	if a.Method == "" || a.Endpoint == "" || a.Expected == nil {
 		return fmt.Errorf("empty method, endpoint or expectations")
 	}
-	a.Endpoint = os.SubstituteString(a.Endpoint)
-	a.Payload = os.SubstituteString(a.Payload)
+	a.Endpoint = os.SubstituteEnvironmentVariable(a.Endpoint)
+	a.Payload = os.SubstituteEnvironmentVariable(a.Payload)
 	return nil
 }
