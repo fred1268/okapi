@@ -177,7 +177,7 @@ A test file contains an array of tests, each of them containing:
 
 > Please also note that `endpoint` and `payload` can use environment variable substitution using the ${env:XXX} syntax (see previous note about environment variable substitution).
 
-> Lastly, please note that `endpoint` and `response` can use captured variable (i.e. variables inside a captured response, see `"capture":true`). For instance, to use the `id` field returned inside of a `user` object in test `mytest`, you will use `${mytest.user.id}`. In the example above, we used `${cap121004.id}` to retrieve the ID of the returned response in test `cap121004`.
+> Lastly, please note that `endpoint` and `response` can use captured variable (i.e. variables inside a captured response, see `"capture":true`). For instance, to use the `id` field returned inside of a `user` object in test `mytest`, you will use `${mytest.user.id}`. In the example above, we used `${cap121004.id}` to retrieve the ID of the returned response in test `cap121004`. Captured response also works with arrays.
 
 ### Payload and Response files
 
