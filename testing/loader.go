@@ -71,6 +71,10 @@ func LoadTests(directory string) (map[string][]*APIRequest, error) {
 		if err := readJSONDependencies(directory, tests.Tests); err != nil {
 			return nil, err
 		}
+		if len(tests.Tests) == 0 {
+			log.Printf("Skipping '%s': no tests found in file\n", file.Name())
+			continue
+		}
 		allTests[file.Name()] = tests.Tests
 	}
 	return allTests, nil
