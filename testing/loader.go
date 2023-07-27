@@ -48,8 +48,8 @@ func readJSONDependencies(directory string, requests []*APIRequest) error {
 //
 // The result is a map indexed by the file name, its value being an
 // array of *APIRequests corresponding to the tests in the file.
-func LoadTests(directory string) (map[string][]*APIRequest, error) {
-	files, err := os.ReadDir(directory)
+func LoadTests(cfg *Config) (map[string][]*APIRequest, error) {
+	files, err := os.ReadDir(cfg.Directory)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,10 @@ func LoadTests(directory string) (map[string][]*APIRequest, error) {
 		if !strings.HasSuffix(file.Name(), ".test.json") {
 			continue
 		}
-		content, err := os.ReadFile(path.Join(directory, file.Name()))
+		if cfg.File != "" && cfg.File != file.Name() {
+			continue
+		}
+		content, err := os.ReadFile(path.Join(cfg.Directory, file.Name()))
 		if err != nil {
 			return nil, fmt.Errorf("cannot read test file '%s': %w", file.Name(), err)
 		}
@@ -68,11 +71,25 @@ func LoadTests(directory string) (map[string][]*APIRequest, error) {
 		if err = json.NewDecoder(bytes.NewReader(content)).Decode(&tests); err != nil {
 			return nil, fmt.Errorf("cannot decode json file '%s': %w", file.Name(), err)
 		}
-		if err := readJSONDependencies(directory, tests.Tests); err != nil {
+		if err := readJSONDependencies(cfg.Directory, tests.Tests); err != nil {
 			return nil, err
 		}
 		if len(tests.Tests) == 0 {
 			log.Printf("Skipping '%s': no tests found in file\n", file.Name())
+			continue
+		}
+		if cfg.Test != "" {
+			var test *APIRequest
+			for _, t := range tests.Tests {
+				if cfg.Test == t.Name {
+					test = t
+					break
+				}
+			}
+			if test != nil {
+				allTests[file.Name()] = []*APIRequest{test}
+				break
+			}
 			continue
 		}
 		allTests[file.Name()] = tests.Tests
