@@ -83,9 +83,13 @@ The configuration file looks like the following:
 A Server description contains various fields:
 
 - `host` (mandatory): the URL of the server (including port and everything you don't want to repeat on every test)
+
 - `auth.login`: used for login/password authentication, using the same format as a test (see below)
+
 - `auth.session.cookie`: used for cookie session management, name of the cookie maintaining the session
+
 - `auth.apikey`: used for API Key authentication, contains both the API Key and the required header
+
 - `auth.session.jwt`: used for JWT session management (`header`, `payload` or `payload.xxx`)
 
 Here `exampleserver1` uses the `/login` endpoint on the same HTTP server than the one used for the tests. Both `email` and `password` are submitted in the `POST`, and `200 OK` is expected upon successful login. The session is maintained by a session cookie called `jsessionid`.
@@ -165,14 +169,23 @@ A test file looks like the following:
 A test file contains an array of tests, each of them containing:
 
 - `name` (mandatory): a unique name to globally identify the test (test name must not contain the `. (period)` character)
+
 - `server` (mandatory): the name of the server used to perform the test (declared in the configuration file)
+
 - `method` (mandatory): the method to perform the operation (`GET`, `POST`, `PUT`, etc.)
+
 - `endpoint` (mandatory): the endpoint of the operation (usually a ReST API of some sort)
+
 - `capture` (default false): true if you want to capture the response of this test so that it can be used in another test in this file (fileParallel mode only)
+
 - `skip` (default false): true to have okapi skip this test (useful when debugging a script file)
+
 - `payload` (default none): the payload to be sent to the endpoint (usually with a POST, PUT or PATCH method)
+
 - `expected`: this section contains:
+
   - `statuscode` (mandatory): the expected status code returned by the endpoint (200, 401, 403, etc.)
+
   - `response` (default none): the expected payload returned by the endpoint. This field is optional
 
 > Please note that `payload` and `response` can be either a string (including json, as shown in 121004), or `@file` (as shown in 121005) or even a `@custom_filename.json` (as shown in doesnotwork). This is useful if you prefer to separate the test from its `payload` or expected `response` (for instance, it is handy if the `payload` or `response` are complex JSON structs that you can easily copy and paste from somewhere else, or simply prefer to avoid escaping double quotes). However, keeping the names for `payload` and `response` like `test_name.payload.json`and `test_name.expected.json` is still a good practice.
@@ -209,13 +222,25 @@ To launch okapi, please run the following:
 where options are one or more of the following:
 
 - `--servers-file`, `-s` (mandatory): point to the configuration file's location
-- `--timeout` (default 30s): set a default timeout for all HTTP requests
+
 - `--verbose`, `-v` (default no): enable verbose mode
-- `--no-parallel` (default parallel): prevent tests from running in parallel
+
 - `--file-parallel` (default no): run the test files in parallel (instead of the tests themselves)
+
+- `--file` (default none): only run the specified test file
+
+- `--test` (default none): only run the specified standalone test
+
+- `--timeout` (default 30s): set a default timeout for all HTTP requests
+
+- `--no-parallel` (default parallel): prevent tests from running in parallel
+
 - `--user-agent` (default okapi UA): set the default user agent
+
 - `--content-type` (default application/json): set the default content type for requests
+
 - `--accept` (default application/json): set the default accept header for responses
+
 - `test_directory` (mandatory): point to the directory where all the test files are located
 
 > Please note that the `--file-parallel` mode is particularly handy if you want to have a sequence of tests that needs to run in a specific order. For instance, you may want to create a resource, update it, and delete it. Placing these three tests in the same file and in the right order, and then running okapi with `--file-parallel` should do the trick. The default mode is used for unit tests, whereas the `--file-parallel` mode is used for (complex) test scenarios.
