@@ -46,6 +46,7 @@ func compareSlices(src, dst []any) error {
 				}
 			}
 			found++
+			break
 		}
 	}
 	if found != len(src) {
