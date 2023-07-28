@@ -82,13 +82,19 @@ The configuration file looks like the following:
 
 A Server description contains various fields:
 
-- `host`: the URL of the server (including port and everything you don't want to repeat on every test)
-- `auth.login`: the information required to login the user, using the same format as a test (see below)
-- `auth.session.cookie`: name of the cookie maintaining the session
+- `host` (mandatory): the URL of the server (including port and everything you don't want to repeat on every test)
+
+- `auth.login`: used for login/password authentication, using the same format as a test (see below)
+
+- `auth.session.cookie`: used for cookie session management, name of the cookie maintaining the session
+
+- `auth.apikey`: used for API Key authentication, contains both the API Key and the required header
+
+- `auth.session.jwt`: used for JWT session management (`header`, `payload` or `payload.xxx`)
 
 Here `exampleserver1` uses the `/login` endpoint on the same HTTP server than the one used for the tests. Both `email` and `password` are submitted in the `POST`, and `200 OK` is expected upon successful login. The session is maintained by a session cookie called `jsessionid`.
 
-The second server, `exampleserver2` also uses the `/login` endpoint, but on a different server, hence the fully qualified URL given as the endpoint. The sesssion is maintained using a JWT (JSON Web Token) which is obtained though a header (namely `Authorization`). Should your JWT be returned as a payload, you can specify `"payload"` instead of `"header"`. You can even use `payload.token` for instance, if your JWT is returned in a `token` field of a JSON object. JWT is always sent back using the `Authorization` header in the form of `Authorization: Bearer my_jwt`.
+The second server, `exampleserver2` also uses the `/login` endpoint, but on a different server, hence the endpoint with a different server. The sesssion is maintained using a JWT (JSON Web Token) which is obtained though a header (namely `Authorization`). Should your JWT be returned as a payload, you can specify `"payload"` instead of `"header"`. You can even use `payload.token` for instance, if your JWT is returned in a `token` field of a JSON object. JWT is always sent back using the `Authorization` header in the form of `Authorization: Bearer my_jwt`.
 
 > Please note that in the case of the server definition, `endpoint` must be an fully qualified URL, not a relative endpoint like in the test files. Thus `endpoint` must start with `http://` or `https://`.
 
@@ -162,18 +168,27 @@ A test file looks like the following:
 
 A test file contains an array of tests, each of them containing:
 
-- `name`: a unique name to globally identify the test (test name must not contain the `. (period)` character)
-- `server`: the name of the server used to perform the test (declared in the configuration file)
-- `method`: the method to perform the operation (`GET`, `POST`, `PUT`, etc.)
-- `endpoint`: the endpoint of the operation (usually a ReST API of some sort)
-- `capture`: true if you want to capture the response of this test so that it can be used in another test in this file (fileParallel mode only)
-- `skip`: true to have okapi skip this test (useful when debugging a script file)
-- `payload`: the payload to be sent to the endpoint (usually with a POST, PUT or PATCH method). This field is optional
-- `expected`: this section contains:
-  - `statuscode`: the expected status code returned by the endpoint (200, 401, 403, etc.)
-  - `response`: the expected payload returned by the endpoint. This field is optional
+- `name` (mandatory): a unique name to globally identify the test (test name must not contain the `. (period)` character)
 
-> Please note that `payload` and `response` can be either a string (including json, as shown in 121004), or `@file` (as shown in 121005) or even a `@custom_filename.json` (as shown in doesnotwork). This is useful if you prefer to separate the test from its `payload` or expected `response`. This is particularly handy if the `payload` or `response` are complex JSON structs that you can easily copy and paste from somewhere else, or simply prefer to avoid escaping double quotes.
+- `server` (mandatory): the name of the server used to perform the test (declared in the configuration file)
+
+- `method` (mandatory): the method to perform the operation (`GET`, `POST`, `PUT`, etc.)
+
+- `endpoint` (mandatory): the endpoint of the operation (usually a ReST API of some sort)
+
+- `capture` (default false): true if you want to capture the response of this test so that it can be used in another test in this file (fileParallel mode only)
+
+- `skip` (default false): true to have okapi skip this test (useful when debugging a script file)
+
+- `payload` (default none): the payload to be sent to the endpoint (usually with a POST, PUT or PATCH method)
+
+- `expected`: this section contains:
+
+  - `statuscode` (mandatory): the expected status code returned by the endpoint (200, 401, 403, etc.)
+
+  - `response` (default none): the expected payload returned by the endpoint. This field is optional
+
+> Please note that `payload` and `response` can be either a string (including json, as shown in 121004), or `@file` (as shown in 121005) or even a `@custom_filename.json` (as shown in doesnotwork). This is useful if you prefer to separate the test from its `payload` or expected `response` (for instance, it is handy if the `payload` or `response` are complex JSON structs that you can easily copy and paste from somewhere else, or simply prefer to avoid escaping double quotes). However, keeping the names for `payload` and `response` like `test_name.payload.json`and `test_name.expected.json` is still a good practice.
 
 > Please also note that `endpoint` and `payload` can use environment variable substitution using the ${env:XXX} syntax (see previous note about environment variable substitution).
 
@@ -181,7 +196,7 @@ A test file contains an array of tests, each of them containing:
 
 ### Payload and Response files
 
-Payload and response files don't have a specific format, since they represent whatever the server you are testing is expecting from or returns to you. The only important things to know about the payload and response files, is that they must be placed in the test directory, and must be named `<name_of_test>.payload.json` and `<name_of_test>.expected.json` (`121005.expected.json` in the example above) respectively if you specify `@file`. If you decide to use a custom filename for your `payload` and/or `response`, then you can specify the name of your choice prefixed by `@` (`@custom_filename.json` in the example above).
+Payload and response files don't have a specific format, since they represent whatever the server you are testing is expecting from or returns to you. The only important things to know about the payload and response files, is that they must be placed in the test directory, and must be named `<name_of_test>.payload.json` and `<name_of_test>.expected.json` (`121005.expected.json` in the example above) respectively if you specify `@file`. Alternatively, they can also be put in a `payload/` or `expected/` subdirectory of the test directory, and, in that case, be named `<name_of_test>.json`. If you decide to use a custom filename for your `payload` and/or `response`, then you can specify the name of your choice prefixed by `@` (`@custom_filename.json` in the example above).
 
 ## Expected response
 
@@ -194,6 +209,8 @@ As we saw earlier, for each test, you will have to define the expected response.
 - if the response is a non-JSON string:
   - the response is compared to `expected` and success or failure is reported
 
+> Please note that, in the case of non-JSON responses, you can use the `%` character to match start, end or part of the response, pretty much like in SQL. For instance, expected responses like `"%test"`, `"test%"` and `"%test%"` will match test at the beginning, end or as part of the returned response respectively.
+
 ## Running okapi :giraffe:
 
 To launch okapi, please run the following:
@@ -205,23 +222,40 @@ To launch okapi, please run the following:
 where options are one or more of the following:
 
 - `--servers-file`, `-s` (mandatory): point to the configuration file's location
-- `--timeout` (default 30s): set a default timeout for all HTTP requests
+
 - `--verbose`, `-v` (default no): enable verbose mode
-- `--no-parallel` (default parallel): prevent tests from running in parallel
+
 - `--file-parallel` (default no): run the test files in parallel (instead of the tests themselves)
+
+- `--file` (default none): only run the specified test file
+
+- `--test` (default none): only run the specified standalone test
+
+- `--timeout` (default 30s): set a default timeout for all HTTP requests
+
+- `--no-parallel` (default parallel): prevent tests from running in parallel
+
 - `--user-agent` (default okapi UA): set the default user agent
+
 - `--content-type` (default application/json): set the default content type for requests
+
 - `--accept` (default application/json): set the default accept header for responses
-- `test_directory`: point to the directory where all the test files are located
+
+- `test_directory` (mandatory): point to the directory where all the test files are located
 
 > Please note that the `--file-parallel` mode is particularly handy if you want to have a sequence of tests that needs to run in a specific order. For instance, you may want to create a resource, update it, and delete it. Placing these three tests in the same file and in the right order, and then running okapi with `--file-parallel` should do the trick. The default mode is used for unit tests, whereas the `--file-parallel` mode is used for (complex) test scenarios.
 
 ## Output example
 
-If you run okapi in verbose mode with the HackerNews API tests, you should get the following outout:
+To try the included examples (located in `./assets/tests`), you need to run the following command:
 
 ```shell
 $ okapi --servers-file ./assets/config.json --verbose ./assets/tests
+```
+
+You should then see the following output:
+
+```shell
 --- PASS:       hackernews.items.test.json
     --- PASS:   121014 (0.35s)
     --- PASS:   121012 (0.36s)
@@ -246,12 +280,13 @@ ok      hackernews.items.test.json                      0.363s
 PASS
 ok      hackernews.users.test.json                      0.368s
 okapi total run time: 0.368s
-$
 ```
 
 ## Integrating okapi :giraffe: with your own software
 
 okapi exposes a pretty simple and straightforward API that you can use within your own Go programs.
+
+You can find more information about the exposed API on [The Official Go Package](https://pkg.go.dev/github.com/fred1268/okapi/testing).
 
 ## Feedback and contribution
 

@@ -134,7 +134,7 @@ func Run(ctx context.Context, cfg *Config) error {
 	if err != nil {
 		return fmt.Errorf("cannot connect to servers: %w", err)
 	}
-	allTests, err := LoadTests(cfg.Tests)
+	allTests, err := LoadTests(cfg)
 	if err != nil {
 		return fmt.Errorf("cannot read tests: %w", err)
 	}
