@@ -227,9 +227,9 @@ where options are one or more of the following:
 
 - `--file-parallel` (default no): run the test files in parallel (instead of the tests themselves)
 
-- `--file` (default none): only run the specified test file
+- `--file`, `-f` (default none): only run the specified test file
 
-- `--test` (default none): only run the specified standalone test
+- `--test`, `-t` (default none): only run the specified standalone test
 
 - `--timeout` (default 30s): set a default timeout for all HTTP requests
 
