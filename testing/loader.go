@@ -24,7 +24,11 @@ func readJSONDependencies(directory string, requests []*APIRequest) error {
 			}
 			content, err := os.ReadFile(path.Join(directory, file))
 			if err != nil {
-				return fmt.Errorf("cannot read test file '%s': %w", file, err)
+				file = fmt.Sprintf("payload/%s.json", strings.ToLower(request.Name))
+				content, err = os.ReadFile(path.Join(directory, file))
+				if err != nil {
+					return fmt.Errorf("cannot read test file '%s': %w", file, err)
+				}
 			}
 			request.Payload = string(content)
 		}
@@ -35,7 +39,11 @@ func readJSONDependencies(directory string, requests []*APIRequest) error {
 			}
 			content, err := os.ReadFile(path.Join(directory, file))
 			if err != nil {
-				return fmt.Errorf("cannot read test file '%s': %w", file, err)
+				file = fmt.Sprintf("expected/%s.json", strings.ToLower(request.Name))
+				content, err = os.ReadFile(path.Join(directory, file))
+				if err != nil {
+					return fmt.Errorf("cannot read test file '%s': %w", file, err)
+				}
 			}
 			request.Expected.Response = string(content)
 		}
