@@ -159,6 +159,16 @@ A test file looks like the following:
       "expected": {
         "statuscode": 200
       }
+    },
+    {
+      "name": "121007",
+      "server": "hackernews",
+      "method": "GET",
+      "endpoint": "/v0/item/121007.json",
+      "expected": {
+        "statuscode": 200,
+        "response": "\\s+[wW]eight"
+      }
     }
   ]
 }
@@ -209,7 +219,7 @@ As we saw earlier, for each test, you will have to define the expected response.
 - if the response is a non-JSON string:
   - the response is compared to `expected` and success or failure is reported
 
-> Please note that, in the case of non-JSON responses, you can use the `%` character to match start, end or part of the response, pretty much like in SQL. For instance, expected responses like `"test%"`, `"%test"` and `"%test%"` will match test at the beginning, end or as part of the returned response respectively.
+> Please note that, in the case of non-JSON responses, you can use regular expressions (see test 121007). In that case, make sure the `expected.response` field is set to a proper, compilable, regular expression. Be mindful that you will need to escape the `\ (backslash)` character using `\\`. For instance `\s+[wW]eight` will be written `\\s+[wW]eight`, in order to match one or more whitespace characters, followed by weight or Weight.
 
 ## Running okapi :giraffe:
 

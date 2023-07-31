@@ -4,20 +4,18 @@ import (
 	"encoding/json"
 	"errors"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
 var ErrJSONMismatched error = errors.New("json mismatched")
 
 func compareStrings(wanted, got string) error {
-	realWanted := strings.Trim(wanted, "%")
-	if strings.HasPrefix(wanted, "%") && strings.HasSuffix(wanted, "%") && !strings.Contains(got, realWanted) {
-		return ErrJSONMismatched
-	} else if strings.HasPrefix(wanted, "%") && !strings.HasPrefix(got, realWanted) {
-		return ErrJSONMismatched
-	} else if strings.HasSuffix(wanted, "%") && !strings.HasSuffix(got, realWanted) {
-		return ErrJSONMismatched
-	} else if wanted != got {
+	matched, err := regexp.MatchString(wanted, got)
+	if err != nil {
+		return err
+	}
+	if !matched {
 		return ErrJSONMismatched
 	}
 	return nil
