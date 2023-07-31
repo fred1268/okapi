@@ -159,6 +159,16 @@ A test file looks like the following:
       "expected": {
         "statuscode": 200
       }
+    },
+    {
+      "name": "121007",
+      "server": "hackernews",
+      "method": "GET",
+      "endpoint": "/v0/item/121007.json",
+      "expected": {
+        "statuscode": 200,
+        "response": "\\s+[wW]eight"
+      }
     }
   ]
 }
@@ -186,7 +196,7 @@ A test file contains an array of tests, each of them containing:
 
   - `statuscode` (mandatory): the expected status code returned by the endpoint (200, 401, 403, etc.)
 
-  - `response` (default none): the expected payload returned by the endpoint. This field is optional
+  - `response` (default none): the expected payload returned by the endpoint.
 
 > Please note that `payload` and `response` can be either a string (including json, as shown in 121004), or `@file` (as shown in 121005) or even a `@custom_filename.json` (as shown in doesnotwork). This is useful if you prefer to separate the test from its `payload` or expected `response` (for instance, it is handy if the `payload` or `response` are complex JSON structs that you can easily copy and paste from somewhere else, or simply prefer to avoid escaping double quotes). However, keeping the names for `payload` and `response` like `test_name.payload.json`and `test_name.expected.json` is still a good practice.
 
@@ -209,7 +219,7 @@ As we saw earlier, for each test, you will have to define the expected response.
 - if the response is a non-JSON string:
   - the response is compared to `expected` and success or failure is reported
 
-> Please note that, in the case of non-JSON responses, you can use the `%` character to match start, end or part of the response, pretty much like in SQL. For instance, expected responses like `"%test"`, `"test%"` and `"%test%"` will match test at the beginning, end or as part of the returned response respectively.
+> Please note that, in the case of non-JSON responses, you can use regular expressions (see test 121007). In that case, make sure the `expected.response` field is set to a proper, compilable, regular expression. Be mindful that you will need to escape the `\ (backslash)` character using `\\`. For instance `\s+[wW]eight` will be written `\\s+[wW]eight`, in order to match one or more whitespace characters, followed by weight or Weight.
 
 ## Running okapi :giraffe:
 
@@ -227,9 +237,9 @@ where options are one or more of the following:
 
 - `--file-parallel` (default no): run the test files in parallel (instead of the tests themselves)
 
-- `--file` (default none): only run the specified test file
+- `--file`, `-f` (default none): only run the specified test file
 
-- `--test` (default none): only run the specified standalone test
+- `--test`, `-t` (default none): only run the specified standalone test
 
 - `--timeout` (default 30s): set a default timeout for all HTTP requests
 
