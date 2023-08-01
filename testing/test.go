@@ -145,11 +145,11 @@ func Run(ctx context.Context, cfg *Config) error {
 	in := make(chan []*testIn)
 	done := make(chan bool)
 	var wg sync.WaitGroup
-	cpu := 1
+	workers := 1
 	if cfg.Parallel || cfg.FileParallel {
-		cpu = cfg.CPU
+		workers = cfg.Workers
 	}
-	for i := 0; i < cpu; i++ {
+	for i := 0; i < workers; i++ {
 		go worker(ctx, in, out, done)
 	}
 	wg.Add(1)

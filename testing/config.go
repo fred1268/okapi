@@ -16,7 +16,7 @@ type Config struct {
 	Accept       string `clap:"--accept"`
 	File         string `clap:"--file,-f"`
 	Test         string `clap:"--test,-t"`
-	CPU          int    `clap:"--cpu"`
+	Workers      int    `clap:"--workers"`
 	Verbose      bool   `clap:"--verbose,-v"`
 	Parallel     bool   `clap:"--parallel,-p"`
 	FileParallel bool   `clap:"--file-parallel"`
@@ -32,7 +32,7 @@ func LoadConfig(args []string) (*Config, error) {
 		UserAgent:    "Mozilla/5.0 (compatible; okapi/1.0; +https://github.com/fred1268/okapi)",
 		ContentType:  "application/json",
 		Accept:       "application/json",
-		CPU:          runtime.NumCPU(),
+		Workers:      runtime.NumCPU(),
 		Parallel:     true,
 		FileParallel: false,
 	}
