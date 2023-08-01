@@ -114,7 +114,7 @@ func printer(ctx context.Context, allTests map[string][]*APIRequest, out chan *t
 				log.Printf("FAIL\t%s\t\t\t%0.3fs\n", tout.file, time.Since(tout.fileStart).Seconds())
 				log.Printf("FAIL \n")
 			} else {
-				log.Printf("ok\t%-30s\t\t\t%0.3fs\n", tout.file, time.Since(tout.fileStart).Seconds())
+				log.Printf("ok\t%-45s\t\t%0.3fs\n", fmt.Sprintf("%s (%d tests)", tout.file, len(allTests[tout.file])), time.Since(tout.fileStart).Seconds())
 			}
 			files++
 		}
@@ -185,6 +185,10 @@ func Run(ctx context.Context, cfg *Config) error {
 	close(done)
 	close(in)
 	close(out)
-	log.Printf("okapi total run time: %0.3fs\n", time.Since(start).Seconds())
+	count := 0
+	for _, value := range allTests {
+		count += len(value)
+	}
+	log.Printf("okapi total run time: %0.3fs (%d tests total)\n", time.Since(start).Seconds(), count)
 	return nil
 }
