@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -148,7 +147,7 @@ func Run(ctx context.Context, cfg *Config) error {
 	var wg sync.WaitGroup
 	cpu := 1
 	if cfg.Parallel || cfg.FileParallel {
-		cpu = runtime.NumCPU()
+		cpu = cfg.CPU
 	}
 	for i := 0; i < cpu; i++ {
 		go worker(ctx, in, out, done)

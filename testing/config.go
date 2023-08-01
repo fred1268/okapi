@@ -1,6 +1,10 @@
 package testing
 
-import "github.com/fred1268/go-clap/clap"
+import (
+	"runtime"
+
+	"github.com/fred1268/go-clap/clap"
+)
 
 // Config holds okapi's configuration.
 type Config struct {
@@ -10,11 +14,12 @@ type Config struct {
 	UserAgent    string `clap:"--user-agent"`
 	ContentType  string `clap:"--content-type"`
 	Accept       string `clap:"--accept"`
+	File         string `clap:"--file,-f"`
+	Test         string `clap:"--test,-t"`
+	CPU          int    `clap:"--cpu"`
 	Verbose      bool   `clap:"--verbose,-v"`
 	Parallel     bool   `clap:"--parallel,-p"`
 	FileParallel bool   `clap:"--file-parallel"`
-	File         string `clap:"--file,-f"`
-	Test         string `clap:"--test,-t"`
 }
 
 // LoadConfig returns okapi's configuration from the
@@ -27,6 +32,7 @@ func LoadConfig(args []string) (*Config, error) {
 		UserAgent:    "Mozilla/5.0 (compatible; okapi/1.0; +https://github.com/fred1268/okapi)",
 		ContentType:  "application/json",
 		Accept:       "application/json",
+		CPU:          runtime.NumCPU(),
 		Parallel:     true,
 		FileParallel: false,
 	}
