@@ -41,7 +41,8 @@ type APIRequest struct {
 	// Skip will make okapi skip this test. Can use useful
 	// when debugging script files or to allow tests to
 	// pass while a bug is being fixed for instance.
-	Skip bool
+	Skip   bool
+	atFile bool
 }
 
 // APIResponse contains information about the response from
@@ -55,7 +56,8 @@ type APIResponse struct {
 	Response string
 	// Logs represents okapi's logs which are grouped later
 	// on to be nicely displayed even in parallel mode.
-	Logs []string
+	Logs   []string
+	atFile bool
 }
 
 func (a *APIRequest) validate() error {
@@ -71,4 +73,8 @@ func (a *APIRequest) validate() error {
 	a.Endpoint = os.SubstituteEnvironmentVariable(a.Endpoint)
 	a.Payload = os.SubstituteEnvironmentVariable(a.Payload)
 	return nil
+}
+
+func (a *APIRequest) hasFileDepencies() bool {
+	return a.atFile || a.Expected.atFile
 }
