@@ -95,6 +95,7 @@ func (c *Client) getRequest(ctx context.Context, apiRequest *APIRequest) (*http.
 	if c.cookie != nil {
 		req.AddCookie(c.cookie)
 	}
+	req.Header.Add("x-okapi-testname", apiRequest.Name)
 	if len(apiRequest.Headers) != 0 {
 		for key, value := range apiRequest.Headers {
 			req.Header.Add(key, value)
