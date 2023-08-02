@@ -155,6 +155,7 @@ A test file looks like the following:
       "server": "hackernews",
       "method": "POST",
       "endpoint": "/v0/item",
+      "urlparams": "{\"q\":\"search terms\"}"
       "payload": "@custom_filename.json",
       "expected": {
         "statuscode": 200
@@ -185,6 +186,8 @@ A test file contains an array of tests, each of them containing:
 - `method` (mandatory): the method to perform the operation (`GET`, `POST`, `PUT`, etc.)
 
 - `endpoint` (mandatory): the endpoint of the operation (usually a ReST API of some sort)
+
+- `urlparams` (default none): an object whose keys/values represents URL parameters' keys and values
 
 - `capture` (default false): true if you want to capture the response of this test so that it can be used in another test in this file (fileParallel mode only)
 
