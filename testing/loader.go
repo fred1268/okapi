@@ -61,6 +61,7 @@ func LoadTests(cfg *Config) (map[string][]*APIRequest, error) {
 	if err != nil {
 		return nil, err
 	}
+	uniqueTests := make(map[string]*APIRequest)
 	allTests := make(map[string][]*APIRequest)
 	for _, file := range files {
 		if !strings.HasSuffix(file.Name(), ".test.json") {
@@ -78,6 +79,31 @@ func LoadTests(cfg *Config) (map[string][]*APIRequest, error) {
 		}
 		if err = json.NewDecoder(bytes.NewReader(content)).Decode(&tests); err != nil {
 			return nil, fmt.Errorf("cannot decode json file '%s': %w", file.Name(), err)
+		}
+		for _, test := range tests.Tests {
+			if test.Payload == "@file" {
+				test.atFile = true
+			}
+			if test.Expected.Response == "@file" {
+				test.Expected.atFile = true
+			}
+		}
+		for _, test := range tests.Tests {
+			t, ok := uniqueTests[test.Name]
+			if !ok {
+				uniqueTests[test.Name] = test
+				continue
+			}
+			log.Printf("Warning: two tests with the same name (%s)\n", test.Name)
+			if t.hasFileDepencies() {
+				if test.hasFileDepencies() {
+					log.Printf("Potential conflict: two tests with the same name (%s) using @file\n", test.Name)
+				}
+			} else {
+				// replace test without @file with this one
+				// doesn't matter if it has @file or not
+				uniqueTests[test.Name] = test
+			}
 		}
 		if err := readJSONDependencies(cfg.Directory, tests.Tests); err != nil {
 			return nil, err

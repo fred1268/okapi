@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -114,7 +113,7 @@ func printer(ctx context.Context, allTests map[string][]*APIRequest, out chan *t
 				log.Printf("FAIL\t%s\t\t\t%0.3fs\n", tout.file, time.Since(tout.fileStart).Seconds())
 				log.Printf("FAIL \n")
 			} else {
-				log.Printf("ok\t%-30s\t\t\t%0.3fs\n", tout.file, time.Since(tout.fileStart).Seconds())
+				log.Printf("ok\t%-45s\t\t%0.3fs\n", fmt.Sprintf("%s (%d tests)", tout.file, len(allTests[tout.file])), time.Since(tout.fileStart).Seconds())
 			}
 			files++
 		}
@@ -146,11 +145,11 @@ func Run(ctx context.Context, cfg *Config) error {
 	in := make(chan []*testIn)
 	done := make(chan bool)
 	var wg sync.WaitGroup
-	cpu := 1
+	workers := 1
 	if cfg.Parallel || cfg.FileParallel {
-		cpu = runtime.NumCPU()
+		workers = cfg.Workers
 	}
-	for i := 0; i < cpu; i++ {
+	for i := 0; i < workers; i++ {
 		go worker(ctx, in, out, done)
 	}
 	wg.Add(1)
@@ -185,6 +184,10 @@ func Run(ctx context.Context, cfg *Config) error {
 	close(done)
 	close(in)
 	close(out)
-	log.Printf("okapi total run time: %0.3fs\n", time.Since(start).Seconds())
+	count := 0
+	for _, value := range allTests {
+		count += len(value)
+	}
+	log.Printf("okapi total run time: %0.3fs (%d tests total)\n", time.Since(start).Seconds(), count)
 	return nil
 }

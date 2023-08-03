@@ -155,6 +155,7 @@ A test file looks like the following:
       "server": "hackernews",
       "method": "POST",
       "endpoint": "/v0/item",
+      "urlparams": "{\"q\":\"search terms\"}",
       "payload": "@custom_filename.json",
       "expected": {
         "statuscode": 200
@@ -186,9 +187,13 @@ A test file contains an array of tests, each of them containing:
 
 - `endpoint` (mandatory): the endpoint of the operation (usually a ReST API of some sort)
 
+- `urlparams` (default none): an object whose keys/values represents URL parameters' keys and values
+
 - `capture` (default false): true if you want to capture the response of this test so that it can be used in another test in this file (fileParallel mode only)
 
 - `skip` (default false): true to have okapi skip this test (useful when debugging a script file)
+
+- `debug` (default false): true to have okapi display debugging information (see debugging tests below)
 
 - `payload` (default none): the payload to be sent to the endpoint (usually with a POST, PUT or PATCH method)
 
@@ -245,6 +250,8 @@ where options are one or more of the following:
 
 - `--no-parallel` (default parallel): prevent tests from running in parallel
 
+- `--workers` (default #cores): define the maximum number of workers
+
 - `--user-agent` (default okapi UA): set the default user agent
 
 - `--content-type` (default application/json): set the default content type for requests
@@ -291,6 +298,26 @@ PASS
 ok      hackernews.users.test.json                      0.368s
 okapi total run time: 0.368s
 ```
+
+## Debugging tests
+
+Writing tests is tedious and it can be pretty difficult to understand what is going on in a test within a full test file running in parallel. In order to help debug your tests, okapi provides a few mechanisms.
+
+### okapi header
+
+With each HTTP request, okapi will send its user agent of course (default `Mozilla/5.0 (compatible; okapi/1.x; +https://github.com/fred1268/okapi)`), but also a special header, `X-okapi-testname` which will contain the name of the test. You can use this information on the server side for instance to display a banner in your logs to delimit the start and end of the tests, making it easier to find the logs corresponding to a particular test.
+
+### okapi run modes
+
+Running tests in `--file-parallel` or `--no-parallel` mode can make it easier to troubleshoot tests, since the tests output, mainly on the server side, won't overlap. Also, using the `--file` or the `--test` to work on a specific file or test respectively will also make this process smoother.
+
+### Test debug flag
+
+Each test can also have its `debug` flag set to true. This tells okapi to display detailed information about the HTTP request being made to the server, including URL, Method, Payload, Parameters, Header, etc. This can be helpful to verify the good setup of your tests, including, but not limited to, captured information.
+
+### Test skip flag
+
+Finally, do not forget that you can skip some tests with the `skip` flag to reduce the amount of information displayed both on the okapi side but also on your server's logs.
 
 ## Integrating okapi :giraffe: with your own software
 

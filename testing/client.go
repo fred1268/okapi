@@ -73,10 +73,18 @@ func (c *Client) buildEndpointURL(ctx context.Context, apiRequest *APIRequest) (
 	return addr, nil
 }
 
-func (c *Client) getRequest(ctx context.Context, apiRequest *APIRequest) (*http.Request, error) {
+func (c *Client) getRequest(ctx context.Context, apiRequest *APIRequest, apiResponse *APIResponse) (*http.Request, error) {
 	addr, err := c.buildEndpointURL(ctx, apiRequest)
 	if err != nil {
 		return nil, err
+	}
+	if apiRequest.Debug {
+		apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("--- %s\n", apiRequest.Name))
+		apiResponse.Logs = append(apiResponse.Logs, "API Request:\n")
+		apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("  URL: %s\n", addr))
+		apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("  Method: %s\n", apiRequest.Method))
+		apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("  Payload: %s\n", apiRequest.Payload))
+		apiResponse.Logs = append(apiResponse.Logs, "  Headers:\n")
 	}
 	req, err := http.NewRequestWithContext(ctx, strings.ToUpper(apiRequest.Method), addr,
 		bytes.NewBufferString(apiRequest.Payload))
@@ -84,32 +92,50 @@ func (c *Client) getRequest(ctx context.Context, apiRequest *APIRequest) (*http.
 		return nil, err
 	}
 	if c.config.Auth != nil && c.config.Auth.APIKey != nil {
+		if apiRequest.Debug {
+			apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("    %s: %s\n", c.config.Auth.APIKey.Header,
+				c.config.Auth.APIKey.APIKey))
+		}
 		req.Header.Set(c.config.Auth.APIKey.Header, c.config.Auth.APIKey.APIKey)
 	}
 	if c.config.UserAgent != "" {
+		if apiRequest.Debug {
+			apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("    User-Agent: %s\n", c.config.UserAgent))
+		}
 		req.Header.Add("User-Agent", c.config.UserAgent)
 	}
 	if c.jwt != "" {
+		if apiRequest.Debug {
+			apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("    Authorization: Bearer: %s\n", c.jwt))
+		}
 		req.Header.Set("authorization", fmt.Sprintf("Bearer: %s", c.jwt))
 	}
 	if c.cookie != nil {
 		req.AddCookie(c.cookie)
 	}
+	req.Header.Add("X-okapi-testname", apiRequest.Name)
 	if len(apiRequest.Headers) != 0 {
 		for key, value := range apiRequest.Headers {
+			if apiRequest.Debug {
+				apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("    %s: %s\n", key, value))
+			}
 			req.Header.Add(key, value)
 		}
 	} else {
 		for key, value := range c.config.Headers {
+			if apiRequest.Debug {
+				apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("    %s: %s\n", key, value))
+			}
 			req.Header.Add(key, value)
 		}
 	}
 	return req, nil
 }
 
-func (c *Client) call(ctx context.Context, apiRequest *APIRequest) (response *APIResponse, err error) {
+func (c *Client) call(ctx context.Context, apiRequest *APIRequest) (apiResponse *APIResponse, err error) {
+	apiResponse = &APIResponse{}
 	var req *http.Request
-	req, err = c.getRequest(ctx, apiRequest)
+	req, err = c.getRequest(ctx, apiRequest, apiResponse)
 	if err != nil {
 		return
 	}
@@ -135,6 +161,10 @@ func (c *Client) call(ctx context.Context, apiRequest *APIRequest) (response *AP
 	if err != nil {
 		return
 	}
+	if apiRequest.Debug {
+		apiResponse.Logs = append(apiResponse.Logs, "API Response:\n")
+		apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("  Response: %s", string(res)))
+	}
 	if c.jwt == "" && c.config.Auth != nil && c.config.Auth.Session != nil && c.config.Auth.Session.JWT != "" {
 		switch c.config.Auth.Session.JWT {
 		case "payload":
@@ -155,7 +185,8 @@ func (c *Client) call(ctx context.Context, apiRequest *APIRequest) (response *AP
 			}
 		}
 	}
-	response = &APIResponse{StatusCode: resp.StatusCode, Response: string(res)}
+	apiResponse.StatusCode = resp.StatusCode
+	apiResponse.Response = string(res)
 	return
 }
 
