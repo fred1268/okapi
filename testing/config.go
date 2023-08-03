@@ -28,13 +28,12 @@ type Config struct {
 // see: https://github.com/fred1268/go-clap
 func LoadConfig(args []string) (*Config, error) {
 	var cfg Config = Config{
-		Timeout:      30,
-		UserAgent:    "Mozilla/5.0 (compatible; okapi/1.0; +https://github.com/fred1268/okapi)",
-		ContentType:  "application/json",
-		Accept:       "application/json",
-		Workers:      runtime.NumCPU(),
-		Parallel:     true,
-		FileParallel: false,
+		Timeout:     30,
+		UserAgent:   "Mozilla/5.0 (compatible; okapi/1.0; +https://github.com/fred1268/okapi)",
+		ContentType: "application/json",
+		Accept:      "application/json",
+		Workers:     runtime.NumCPU(),
+		Parallel:    true,
 	}
 	if _, err := clap.Parse(args, &cfg); err != nil {
 		return nil, err
