@@ -25,6 +25,7 @@ func help() {
 	fmt.Println("\t--test, -t (default none):\t\t\t\tonly run the specified standalone test")
 	fmt.Println("\t--timeout (default 30s):\t\t\t\tset a default timeout for all HTTP requests")
 	fmt.Println("\t--no-parallel (default parallel):\t\t\tprevent tests from running in parallel")
+	fmt.Println("\t--workers (default #cores):\t\t\t\tdefine the maximum number of workers")
 	fmt.Println("\t--user-agent (default okapi UA):\t\t\tset the default user agent")
 	fmt.Println("\t--content-type (default 'application/json'):\t\tset the default content type for requests")
 	fmt.Println("\t--accept (default 'application/json'):\t\t\tset the default accept header for responses")

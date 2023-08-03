@@ -250,6 +250,8 @@ where options are one or more of the following:
 
 - `--no-parallel` (default parallel): prevent tests from running in parallel
 
+- `--workers` (default #cores): define the maximum number of workers
+
 - `--user-agent` (default okapi UA): set the default user agent
 
 - `--content-type` (default application/json): set the default content type for requests
