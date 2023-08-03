@@ -33,6 +33,8 @@ func help() {
 	fmt.Println()
 	fmt.Println("\ttest_directory:\t\t\t\t\t\tpoint to the directory where all the test files are located")
 	fmt.Println()
+	fmt.Println("More information (and source code) on: https://github.com/fred1268/okapi")
+	fmt.Println()
 }
 
 func main() {
