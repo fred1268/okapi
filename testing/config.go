@@ -29,7 +29,7 @@ type Config struct {
 func LoadConfig(args []string) (*Config, error) {
 	var cfg Config = Config{
 		Timeout:     30,
-		UserAgent:   "Mozilla/5.0 (compatible; okapi/1.0; +https://github.com/fred1268/okapi)",
+		UserAgent:   "Mozilla/5.0 (compatible; okapi/1.x; +https://github.com/fred1268/okapi)",
 		ContentType: "application/json",
 		Accept:      "application/json",
 		Workers:     runtime.NumCPU(),
