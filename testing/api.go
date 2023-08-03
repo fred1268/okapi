@@ -41,7 +41,10 @@ type APIRequest struct {
 	// Skip will make okapi skip this test. Can use useful
 	// when debugging script files or to allow tests to
 	// pass while a bug is being fixed for instance.
-	Skip   bool
+	Skip bool
+	// Debug will make okapi output test debugging
+	// information to ease troubleshooting errors
+	Debug  bool
 	atFile bool
 }
 
