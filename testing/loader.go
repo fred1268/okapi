@@ -51,6 +51,48 @@ func readJSONDependencies(directory string, requests []*APIRequest) error {
 	return nil
 }
 
+func loadTest(cfg *Config, uniqueTests map[string]*APIRequest, filename string) ([]*APIRequest, error) {
+	content, err := os.ReadFile(path.Join(cfg.Directory, filename))
+	if err != nil {
+		return nil, fmt.Errorf("cannot read test file '%s': %w", filename, err)
+	}
+	var tests struct {
+		Tests []*APIRequest
+	}
+	if err = json.NewDecoder(bytes.NewReader(content)).Decode(&tests); err != nil {
+		return nil, fmt.Errorf("cannot decode json file '%s': %w", filename, err)
+	}
+	for _, test := range tests.Tests {
+		if test.Payload == "@file" {
+			test.atFile = true
+		}
+		if test.Expected.Response == "@file" {
+			test.Expected.atFile = true
+		}
+	}
+	for _, test := range tests.Tests {
+		t, ok := uniqueTests[test.Name]
+		if !ok {
+			uniqueTests[test.Name] = test
+			continue
+		}
+		log.Printf("Warning: two tests with the same name (%s)\n", test.Name)
+		if t.hasFileDepencies() {
+			if test.hasFileDepencies() {
+				log.Printf("Potential conflict: two tests with the same name (%s) are using @file\n", test.Name)
+			}
+		} else {
+			// replace test without @file with this one
+			// doesn't matter if it has @file or not
+			uniqueTests[test.Name] = test
+		}
+	}
+	if err := readJSONDependencies(cfg.Directory, tests.Tests); err != nil {
+		return nil, err
+	}
+	return tests.Tests, nil
+}
+
 // LoadTests reads all test files in the provided directory and
 // returns them sorted by file.
 //
@@ -67,54 +109,23 @@ func LoadTests(cfg *Config) (map[string][]*APIRequest, error) {
 		if !strings.HasSuffix(file.Name(), ".test.json") {
 			continue
 		}
+		if file.Name() == "setup.test.json" || file.Name() == "teardown.test.json" {
+			continue
+		}
 		if cfg.File != "" && cfg.File != file.Name() {
 			continue
 		}
-		content, err := os.ReadFile(path.Join(cfg.Directory, file.Name()))
+		tests, err := loadTest(cfg, uniqueTests, file.Name())
 		if err != nil {
-			return nil, fmt.Errorf("cannot read test file '%s': %w", file.Name(), err)
-		}
-		var tests struct {
-			Tests []*APIRequest
-		}
-		if err = json.NewDecoder(bytes.NewReader(content)).Decode(&tests); err != nil {
-			return nil, fmt.Errorf("cannot decode json file '%s': %w", file.Name(), err)
-		}
-		for _, test := range tests.Tests {
-			if test.Payload == "@file" {
-				test.atFile = true
-			}
-			if test.Expected.Response == "@file" {
-				test.Expected.atFile = true
-			}
-		}
-		for _, test := range tests.Tests {
-			t, ok := uniqueTests[test.Name]
-			if !ok {
-				uniqueTests[test.Name] = test
-				continue
-			}
-			log.Printf("Warning: two tests with the same name (%s)\n", test.Name)
-			if t.hasFileDepencies() {
-				if test.hasFileDepencies() {
-					log.Printf("Potential conflict: two tests with the same name (%s) using @file\n", test.Name)
-				}
-			} else {
-				// replace test without @file with this one
-				// doesn't matter if it has @file or not
-				uniqueTests[test.Name] = test
-			}
-		}
-		if err := readJSONDependencies(cfg.Directory, tests.Tests); err != nil {
 			return nil, err
 		}
-		if len(tests.Tests) == 0 {
+		if len(tests) == 0 {
 			log.Printf("Skipping '%s': no tests found in file\n", file.Name())
 			continue
 		}
 		if cfg.Test != "" {
 			var test *APIRequest
-			for _, t := range tests.Tests {
+			for _, t := range tests {
 				if cfg.Test == t.Name {
 					test = t
 					break
@@ -126,7 +137,7 @@ func LoadTests(cfg *Config) (map[string][]*APIRequest, error) {
 			}
 			continue
 		}
-		allTests[file.Name()] = tests.Tests
+		allTests[file.Name()] = tests
 	}
 	return allTests, nil
 }
