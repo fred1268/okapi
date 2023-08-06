@@ -1,7 +1,9 @@
 package testing
 
 import (
+	"fmt"
 	"runtime"
+	"strings"
 
 	"github.com/fred1268/go-clap/clap"
 )
@@ -20,6 +22,7 @@ type Config struct {
 	Verbose      bool   `clap:"--verbose,-v"`
 	Parallel     bool   `clap:"--parallel,-p"`
 	FileParallel bool   `clap:"--file-parallel"`
+	setupCapture map[string]any
 }
 
 // LoadConfig returns okapi's configuration from the
@@ -37,6 +40,9 @@ func LoadConfig(args []string) (*Config, error) {
 	}
 	if _, err := clap.Parse(args, &cfg); err != nil {
 		return nil, err
+	}
+	if cfg.File != "" && !strings.HasSuffix(cfg.File, ".test.json") {
+		cfg.File = fmt.Sprintf("%s.test.json", cfg.File)
 	}
 	return &cfg, nil
 }

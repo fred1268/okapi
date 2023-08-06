@@ -55,6 +55,9 @@ func worker(ctx context.Context, in chan []*testIn, out chan *testOut, done chan
 		case runs := <-in:
 			captures := make(map[string]any)
 			for _, run := range runs {
+				if run == runs[0] {
+					captures["setup"] = run.config.setupCapture
+				}
 				run.test.Endpoint = os.SubstituteCapturedVariable(run.test.Endpoint, captures)
 				run.test.Payload = os.SubstituteCapturedVariable(run.test.Payload, captures)
 				run.test.Expected.Response = os.SubstituteCapturedVariable(run.test.Expected.Response, captures)
@@ -154,6 +157,9 @@ func Run(ctx context.Context, cfg *Config) error {
 	}
 	wg.Add(1)
 	go printer(ctx, allTests, out, &wg)
+	if err := Setup(ctx, cfg, clients); err != nil {
+		return err
+	}
 	for key, tests := range allTests {
 		fileStart := time.Now()
 		var tins []*testIn
@@ -184,6 +190,9 @@ func Run(ctx context.Context, cfg *Config) error {
 	close(done)
 	close(in)
 	close(out)
+	if err := Teardown(ctx, cfg, clients); err != nil {
+		return err
+	}
 	count := 0
 	for _, value := range allTests {
 		count += len(value)

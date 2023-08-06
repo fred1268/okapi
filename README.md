@@ -207,7 +207,7 @@ A test file contains an array of tests, each of them containing:
 
 > Please also note that `endpoint` and `payload` can use environment variable substitution using the ${env:XXX} syntax (see previous note about environment variable substitution).
 
-> Lastly, please note that `endpoint` and `response` can use captured variable (i.e. variables inside a captured response, see `"capture":true`). For instance, to use the `id` field returned inside of a `user` object in test `mytest`, you will use `${mytest.user.id}`. In the example above, we used `${cap121004.id}` to retrieve the ID of the returned response in test `cap121004`. Captured response also works with arrays.
+> Lastly, please note that `endpoint`, `payload` and `response` can use captured variable (i.e. variables inside a captured response, see `"capture":true`). For instance, to use the `id` field returned inside of a `user` object in test `mytest`, you will use `${mytest.user.id}`. In the example above, we used `${cap121004.id}` to retrieve the ID of the returned response in test `cap121004`. Captured response also works with arrays.
 
 ### Payload and Response files
 
@@ -225,6 +225,14 @@ As we saw earlier, for each test, you will have to define the expected response.
   - the response is compared to `expected` and success or failure is reported
 
 > Please note that, in the case of non-JSON responses, you can use regular expressions (see test 121007). In that case, make sure the `expected.response` field is set to a proper, compilable, regular expression. Be mindful that you will need to escape the `\ (backslash)` character using `\\`. For instance `\s+[wW]eight` will be written `\\s+[wW]eight`, in order to match one or more whitespace characters, followed by weight or Weight.
+
+## Setup and Teardown
+
+okapi will always try to load and execute the `setup.test.json` file before any other tests, and the `teardown.test.json` after all other tests. All tests in the `setup.test.json` file are automatically captured (independently of the test's `capture` flag). The captured variables will be available under the `setup.testname.xxx...` name (like the other test, but with a `setup` prefix). Also, they will be globally available, including to the `teardown.test.json` file.
+
+Usually, you will want to have your `teardown.test.json` undo all changes done by the `setup.test.json` file so that your whole test suite (i.e. directory) is idempotent. This is an important caracteristics of a good test suite.
+
+> Please note that both of these files are optional.
 
 ## Running okapi :giraffe:
 
