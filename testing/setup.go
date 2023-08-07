@@ -25,12 +25,12 @@ func load(ctx context.Context, cfg *Config, clients map[string]*Client, name str
 		return err
 	}
 	if cfg.Verbose {
-		log.Printf(fmt.Sprintf("%s tests executed\n", name))
+		log.Printf("--- EXEC:\t%s.test.json\n", name)
 	}
 	for _, test := range tests {
 		client := clients[test.Server]
 		if client == nil {
-			log.Fatalf("invalid server '%s' for test '%s'\n", test.Server, test.Name)
+			log.Fatalf("    --- FAIL:\tinvalid server '%s' for test '%s'\n", test.Server, test.Name)
 			continue
 		}
 		test.Endpoint = tos.SubstituteCapturedVariable(test.Endpoint, cfg.setupCapture)
@@ -39,8 +39,10 @@ func load(ctx context.Context, cfg *Config, clients map[string]*Client, name str
 		response, err := client.Test(ctx, test, cfg.Verbose)
 		if err != nil {
 			if !errors.Is(err, ErrStatusCodeMismatched) && !errors.Is(err, ErrResponseMismatched) {
-				log.Fatalf(fmt.Sprintf("Cannot run %s test '%s': %v\n", name, test.Name, err))
+				log.Printf("    --- FAIL:\tcannot run %s test '%s': %v\n", name, test.Name, err)
+				return err
 			}
+			log.Printf("    --- FAIL:\tcannot run %s test '%s': %s\n", name, test.Name, err)
 		}
 		if name == "setup" {
 			var r interface{}
