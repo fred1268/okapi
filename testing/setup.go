@@ -42,7 +42,9 @@ func load(ctx context.Context, cfg *Config, clients map[string]*Client, name str
 				log.Printf("    --- FAIL:\tcannot run %s test '%s': %v\n", name, test.Name, err)
 				return err
 			}
-			log.Printf("    --- FAIL:\tcannot run %s test '%s': %s\n", name, test.Name, err)
+			log.Printf("    --- FAIL:\t%s\n", test.Name)
+			log.Printf("    wanted: '%s' (%d), got '%s' (%d)\n", test.Expected.Response, test.Expected.StatusCode,
+				strings.Trim(response.Response, "\n"), response.StatusCode)
 		}
 		if name == "setup" {
 			var r interface{}
