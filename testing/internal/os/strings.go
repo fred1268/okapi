@@ -12,7 +12,7 @@ func SubstituteEnvironmentVariable(value string) string {
 	for {
 		start := strings.Index(value, "${env:")
 		if start != -1 {
-			end := strings.Index(value, "}")
+			end := start + strings.Index(value[start:], "}")
 			if end != -1 {
 				result += fmt.Sprintf("%s%s", value[0:start], os.Getenv(value[start+6:end]))
 				end++
@@ -76,7 +76,7 @@ func SubstituteCapturedVariable(value string, captures map[string]any) string {
 	for {
 		start := strings.Index(value, "${")
 		if start != -1 {
-			end := strings.Index(value, "}")
+			end := start + strings.Index(value[start:], "}")
 			if end != -1 {
 				result += fmt.Sprintf("%s%s", value[0:start], findValue(value[start+2:end], captures))
 				end++
