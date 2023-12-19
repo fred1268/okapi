@@ -50,6 +50,31 @@ func NewClient(config *ServerConfig) *Client {
 	return client
 }
 
+func (c *Client) Clone() *Client {
+	cookie := http.Cookie{}
+	if c.cookie != nil {
+		cookie = *c.cookie
+	}
+	return &Client{
+		config: c.config,
+		cookie: &cookie,
+		jwt:    c.jwt,
+		client: &http.Client{
+			Timeout: time.Duration(c.config.Timeout) * time.Second,
+			Transport: &http.Transport{
+				DialContext: (&net.Dialer{
+					Timeout: 5 * time.Second,
+				}).DialContext,
+				TLSHandshakeTimeout:   10 * time.Second,
+				ResponseHeaderTimeout: 10 * time.Second,
+				MaxIdleConns:          100,
+				MaxConnsPerHost:       100,
+				MaxIdleConnsPerHost:   100,
+			},
+		},
+	}
+}
+
 func (c *Client) buildEndpointURL(ctx context.Context, apiRequest *APIRequest) (string, error) {
 	var err error
 	addr := apiRequest.Endpoint
@@ -106,9 +131,9 @@ func (c *Client) getRequest(ctx context.Context, apiRequest *APIRequest, apiResp
 	}
 	if c.jwt != "" {
 		if apiRequest.Debug {
-			apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("    Authorization: Bearer: %s\n", c.jwt))
+			apiResponse.Logs = append(apiResponse.Logs, fmt.Sprintf("    Authorization: Bearer %s\n", c.jwt))
 		}
-		req.Header.Set("authorization", fmt.Sprintf("Bearer: %s", c.jwt))
+		req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", c.jwt))
 	}
 	if c.cookie != nil {
 		req.AddCookie(c.cookie)
@@ -130,6 +155,26 @@ func (c *Client) getRequest(ctx context.Context, apiRequest *APIRequest, apiResp
 		}
 	}
 	return req, nil
+}
+
+func (c *Client) captureJWT(response string) error {
+	var payload interface{}
+	err := json.Unmarshal([]byte(response), &payload)
+	if err != nil {
+		return err
+	}
+	if obj, ok := payload.(map[string]any); ok {
+		for key, value := range obj {
+			if key != strings.ToLower(key) {
+				obj[strings.ToLower(key)] = value
+				delete(obj, key)
+			}
+		}
+		if c.jwt, ok = obj[c.config.Auth.Session.JWT[8:]].(string); !ok {
+			return fmt.Errorf("cannot read JWT from payload")
+		}
+	}
+	return nil
 }
 
 func (c *Client) call(ctx context.Context, apiRequest *APIRequest) (apiResponse *APIResponse, err error) {
@@ -172,17 +217,7 @@ func (c *Client) call(ctx context.Context, apiRequest *APIRequest) (apiResponse 
 		case "header":
 			c.jwt = resp.Header.Get("authorization")
 		default: // "payload.xxx"
-			var payload interface{}
-			err = json.Unmarshal([]byte(res), &payload)
-			if err != nil {
-				return
-			}
-			if obj, ok := payload.(map[string]any); ok {
-				if c.jwt, ok = obj[c.config.Auth.Session.JWT[8:]].(string); !ok {
-					err = fmt.Errorf("cannot read JWT from payload")
-					return
-				}
-			}
+			err = c.captureJWT(string(res))
 		}
 	}
 	apiResponse.StatusCode = resp.StatusCode
