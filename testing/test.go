@@ -44,6 +44,9 @@ func runOne(ctx context.Context, tin *testIn, out chan<- *testOut) (*APIResponse
 		}
 		tout.fail = true
 	}
+	if tin.test.CaptureJWT {
+		tin.client.captureJWT(response.Response)
+	}
 	tout.logs = append(tout.logs, response.Logs...)
 	out <- tout
 	return response, nil
@@ -163,15 +166,19 @@ func Run(ctx context.Context, cfg *Config) error {
 	for key, tests := range allTests {
 		fileStart := time.Now()
 		var tins []*testIn
+		localClients := make(map[string]*Client)
+		for key, value := range clients {
+			localClients[key] = value.Clone()
+		}
 		for _, test := range tests {
-			if clients[test.Server] == nil {
+			if localClients[test.Server] == nil {
 				log.Fatalf("invalid server for %s ('%s')\n", test.Name, key)
 				continue
 			}
 			tins = append(tins, &testIn{
 				file:      key,
 				test:      test,
-				client:    clients[test.Server],
+				client:    localClients[test.Server],
 				fileStart: fileStart,
 				start:     time.Now(),
 				config:    cfg,

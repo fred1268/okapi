@@ -46,6 +46,9 @@ func load(ctx context.Context, cfg *Config, clients map[string]*Client, name str
 			log.Printf("    wanted: '%s' (%d), got '%s' (%d)\n", test.Expected.Response, test.Expected.StatusCode,
 				strings.Trim(response.Response, "\n"), response.StatusCode)
 		}
+		if test.CaptureJWT {
+			client.captureJWT(response.Response)
+		}
 		if name == "setup" {
 			var r interface{}
 			err = json.Unmarshal([]byte(strings.ToLower(response.Response)), &r)

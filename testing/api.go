@@ -38,6 +38,9 @@ type APIRequest struct {
 	// a JSON object and make it available for the next
 	// tests (fileParallel modes only).
 	Capture bool
+	// CaptureJWT allows okapi to update the current JWT
+	// and make it available for the next requests.
+	CaptureJWT bool
 	// Skip will make okapi skip this test. Can use useful
 	// when debugging script files or to allow tests to
 	// pass while a bug is being fixed for instance.
