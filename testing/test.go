@@ -88,7 +88,7 @@ func worker(ctx context.Context, in chan []*testIn, out chan *testOut, done chan
 	}
 }
 
-func printer(ctx context.Context, allTests map[string][]*APIRequest, out chan *testOut, wg *sync.WaitGroup) {
+func printer(_ context.Context, allTests map[string][]*APIRequest, out chan *testOut, wg *sync.WaitGroup) {
 	files := 0
 	fails := make(map[string]struct{})
 	counts := make(map[string]int)
