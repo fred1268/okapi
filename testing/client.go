@@ -75,7 +75,7 @@ func (c *Client) Clone() *Client {
 	}
 }
 
-func (c *Client) buildEndpointURL(ctx context.Context, apiRequest *APIRequest) (string, error) {
+func (c *Client) buildEndpointURL(_ context.Context, apiRequest *APIRequest) (string, error) {
 	var err error
 	addr := apiRequest.Endpoint
 	if !strings.Contains(apiRequest.Endpoint, "://") {
